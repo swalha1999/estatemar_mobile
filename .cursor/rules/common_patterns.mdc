@@ -1,0 +1,1093 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Common Patterns - Estate Mobile App
+
+## Property Card Component
+
+### Basic Property Card
+```dart
+// lib/widgets/property_card.dart
+class PropertyCard extends StatelessWidget {
+  const PropertyCard({
+    super.key,
+    required this.property,
+    this.onTap,
+    this.onFavoritePressed,
+    this.isFavorite = false,
+  });
+
+  final Property property;
+  final VoidCallback? onTap;
+  final VoidCallback? onFavoritePressed;
+  final bool isFavorite;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildImageSection(),
+            _buildDetailsSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageSection() {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+          child: PropertyImage(
+            imageUrl: property.imageUrl,
+            height: 200,
+            width: double.infinity,
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: _buildFavoriteButton(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFavoriteButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        onPressed: onFavoritePressed,
+        icon: Icon(
+          isFavorite ? Icons.favorite : Icons.favorite_border,
+          color: isFavorite ? Colors.red : Colors.grey[600],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsSection() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            property.formattedPrice,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  property.location,
+                  style: const TextStyle(color: Colors.grey),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          _buildPropertyFeatures(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyFeatures() {
+    return Row(
+      children: [
+        _buildFeatureChip(Icons.bed, '${property.bedrooms} beds'),
+        const SizedBox(width: 8),
+        _buildFeatureChip(Icons.bathroom, '${property.bathrooms} baths'),
+        const SizedBox(width: 8),
+        _buildFeatureChip(Icons.square_foot, '${property.area.toInt()} sq ft'),
+      ],
+    );
+  }
+
+  Widget _buildFeatureChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[600]),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Search and Filter Pattern
+
+### Search Bar Component
+```dart
+// lib/widgets/search_bar.dart
+class PropertySearchBar extends StatefulWidget {
+  const PropertySearchBar({
+    super.key,
+    required this.onSearch,
+    this.onFilter,
+    this.hintText = 'Search properties...',
+  });
+
+  final ValueChanged<String> onSearch;
+  final VoidCallback? onFilter;
+  final String hintText;
+
+  @override
+  State<PropertySearchBar> createState() => _PropertySearchBarState();
+}
+
+class _PropertySearchBarState extends State<PropertySearchBar> {
+  final TextEditingController _controller = TextEditingController();
+  Timer? _debounceTimer;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      widget.onSearch(query);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _controller,
+              onChanged: _onSearchChanged,
+              decoration: InputDecoration(
+                hintText: widget.hintText,
+                prefixIcon: const Icon(Icons.search),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.all(16),
+                suffixIcon: _controller.text.isNotEmpty
+                    ? IconButton(
+                        onPressed: () {
+                          _controller.clear();
+                          widget.onSearch('');
+                        },
+                        icon: const Icon(Icons.clear),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+          if (widget.onFilter != null)
+            Container(
+              height: 48,
+              width: 1,
+              color: Colors.grey[300],
+            ),
+          if (widget.onFilter != null)
+            IconButton(
+              onPressed: widget.onFilter,
+              icon: const Icon(Icons.tune),
+            ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+### Filter Bottom Sheet
+```dart
+// lib/widgets/filter_bottom_sheet.dart
+class PropertyFilterBottomSheet extends StatefulWidget {
+  const PropertyFilterBottomSheet({
+    super.key,
+    required this.initialFilters,
+    required this.onApply,
+  });
+
+  final PropertyFilters initialFilters;
+  final ValueChanged<PropertyFilters> onApply;
+
+  @override
+  State<PropertyFilterBottomSheet> createState() => _PropertyFilterBottomSheetState();
+}
+
+class _PropertyFilterBottomSheetState extends State<PropertyFilterBottomSheet> {
+  late PropertyFilters _filters;
+
+  @override
+  void initState() {
+    super.initState();
+    _filters = widget.initialFilters.copyWith();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          const SizedBox(height: 16),
+          _buildPriceRangeFilter(),
+          const SizedBox(height: 16),
+          _buildBedroomsFilter(),
+          const SizedBox(height: 16),
+          _buildBathroomsFilter(),
+          const SizedBox(height: 16),
+          _buildPropertyTypeFilter(),
+          const SizedBox(height: 24),
+          _buildActionButtons(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'Filters',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _filters = PropertyFilters.empty();
+            });
+          },
+          child: const Text('Clear All'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceRangeFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Price Range',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        RangeSlider(
+          values: RangeValues(_filters.minPrice, _filters.maxPrice),
+          min: 0,
+          max: 2000000,
+          divisions: 20,
+          labels: RangeLabels(
+            '\$${_filters.minPrice.toInt()}',
+            '\$${_filters.maxPrice.toInt()}',
+          ),
+          onChanged: (values) {
+            setState(() {
+              _filters = _filters.copyWith(
+                minPrice: values.start,
+                maxPrice: values.end,
+              );
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBedroomsFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Bedrooms',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            for (int i = 1; i <= 5; i++)
+              FilterChip(
+                label: Text('$i+'),
+                selected: _filters.bedrooms == i,
+                onSelected: (selected) {
+                  setState(() {
+                    _filters = _filters.copyWith(
+                      bedrooms: selected ? i : null,
+                    );
+                  });
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBathroomsFilter() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Bathrooms',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            for (int i = 1; i <= 4; i++)
+              FilterChip(
+                label: Text('$i+'),
+                selected: _filters.bathrooms == i,
+                onSelected: (selected) {
+                  setState(() {
+                    _filters = _filters.copyWith(
+                      bathrooms: selected ? i : null,
+                    );
+                  });
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPropertyTypeFilter() {
+    const propertyTypes = ['House', 'Apartment', 'Condo', 'Townhouse'];
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Property Type',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: [
+            for (final type in propertyTypes)
+              FilterChip(
+                label: Text(type),
+                selected: _filters.propertyTypes.contains(type),
+                onSelected: (selected) {
+                  setState(() {
+                    final types = Set<String>.from(_filters.propertyTypes);
+                    if (selected) {
+                      types.add(type);
+                    } else {
+                      types.remove(type);
+                    }
+                    _filters = _filters.copyWith(propertyTypes: types.toList());
+                  });
+                },
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              widget.onApply(_filters);
+              Navigator.pop(context);
+            },
+            child: const Text('Apply Filters'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+```
+
+## Loading States Pattern
+
+### Shimmer Loading
+```dart
+// lib/widgets/shimmer_loading.dart
+class PropertyCardShimmer extends StatelessWidget {
+  const PropertyCardShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 200,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(8),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 18,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 16,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 14,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PropertyListShimmer extends StatelessWidget {
+  const PropertyListShimmer({super.key, this.itemCount = 5});
+
+  final int itemCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: itemCount,
+      itemBuilder: (context, index) => const PropertyCardShimmer(),
+    );
+  }
+}
+```
+
+## Error Handling Pattern
+
+### Error Widget
+```dart
+// lib/widgets/error_widget.dart
+class ErrorStateWidget extends StatelessWidget {
+  const ErrorStateWidget({
+    super.key,
+    required this.message,
+    this.onRetry,
+    this.icon = Icons.error_outline,
+  });
+
+  final String message;
+  final VoidCallback? onRetry;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+            if (onRetry != null) ...[
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Usage in screens
+Widget build(BuildContext context) {
+  return Consumer<PropertyProvider>(
+    builder: (context, provider, child) {
+      if (provider.isLoading) {
+        return const PropertyListShimmer();
+      }
+      
+      if (provider.error != null) {
+        return ErrorStateWidget(
+          message: 'Failed to load properties. Please try again.',
+          onRetry: provider.loadProperties,
+        );
+      }
+      
+      if (provider.properties.isEmpty) {
+        return const ErrorStateWidget(
+          message: 'No properties found.',
+          icon: Icons.search_off,
+        );
+      }
+      
+      return PropertyList(properties: provider.properties);
+    },
+  );
+}
+```
+
+## Image Gallery Pattern
+
+### Property Image Gallery
+```dart
+// lib/widgets/property_image_gallery.dart
+class PropertyImageGallery extends StatefulWidget {
+  const PropertyImageGallery({
+    super.key,
+    required this.images,
+    this.initialIndex = 0,
+  });
+
+  final List<String> images;
+  final int initialIndex;
+
+  @override
+  State<PropertyImageGallery> createState() => _PropertyImageGalleryState();
+}
+
+class _PropertyImageGalleryState extends State<PropertyImageGallery> {
+  late PageController _pageController;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          '${_currentIndex + 1} of ${widget.images.length}',
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: widget.images.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return InteractiveViewer(
+                child: Center(
+                  child: CachedNetworkImage(
+                    imageUrl: widget.images[index],
+                    fit: BoxFit.contain,
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (context, url, error) => const Center(
+                      child: Icon(
+                        Icons.error,
+                        color: Colors.white,
+                        size: 48,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: _buildImageIndicators(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageIndicators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (int i = 0; i < widget.images.length; i++)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: i == _currentIndex
+                  ? Colors.white
+                  : Colors.white.withOpacity(0.5),
+            ),
+          ),
+      ],
+    );
+  }
+}
+```
+
+## Form Validation Pattern
+
+### Contact Form
+```dart
+// lib/widgets/contact_form.dart
+class ContactForm extends StatefulWidget {
+  const ContactForm({
+    super.key,
+    required this.onSubmit,
+    this.property,
+  });
+
+  final Function(ContactFormData) onSubmit;
+  final Property? property;
+
+  @override
+  State<ContactForm> createState() => _ContactFormState();
+}
+
+class _ContactFormState extends State<ContactForm> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _messageController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.property != null) {
+      _messageController.text = 
+          'I\'m interested in ${widget.property!.title}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final formData = ContactFormData(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        message: _messageController.text.trim(),
+        propertyId: widget.property?.id,
+      );
+
+      await widget.onSubmit(formData);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Message sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send message: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextFormField(
+            controller: _nameController,
+            decoration: const InputDecoration(
+              labelText: 'Full Name *',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter your name';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            decoration: const InputDecoration(
+              labelText: 'Email *',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter your email';
+              }
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                return 'Please enter a valid email';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _phoneController,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(
+              labelText: 'Phone Number',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value != null && value.isNotEmpty) {
+                if (!RegExp(r'^\+?[\d\s\-\(\)]+$').hasMatch(value)) {
+                  return 'Please enter a valid phone number';
+                }
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+          TextFormField(
+            controller: _messageController,
+            maxLines: 4,
+            decoration: const InputDecoration(
+              labelText: 'Message *',
+              border: OutlineInputBorder(),
+              alignLabelWithHint: true,
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Please enter your message';
+              }
+              if (value.trim().length < 10) {
+                return 'Message must be at least 10 characters';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: _isLoading ? null : _submitForm,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Send Message'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Navigation Patterns
+
+### Bottom Navigation Setup
+```dart
+// lib/screens/main_screen.dart
+class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  int _currentIndex = 0;
+  
+  final List<Widget> _screens = [
+    const HomeScreen(),
+    const SearchScreen(),
+    const FavoritesScreen(),
+    const ProfileScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Search',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+```
+
+## Responsive Design Pattern
+
+### Responsive Grid
+```dart
+// lib/widgets/responsive_grid.dart
+class ResponsivePropertyGrid extends StatelessWidget {
+  const ResponsivePropertyGrid({
+    super.key,
+    required this.properties,
+    this.onPropertyTap,
+  });
+
+  final List<Property> properties;
+  final ValueChanged<Property>? onPropertyTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = _getCrossAxisCount(constraints.maxWidth);
+        
+        return GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.75,
+          ),
+          itemCount: properties.length,
+          itemBuilder: (context, index) {
+            return PropertyGridCard(
+              property: properties[index],
+              onTap: onPropertyTap != null
+                  ? () => onPropertyTap!(properties[index])
+                  : null,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  int _getCrossAxisCount(double width) {
+    if (width < 600) return 1;
+    if (width < 900) return 2;
+    if (width < 1200) return 3;
+    return 4;
+  }
+}
+```
+
+## Best Practices Summary
+
+### Widget Patterns
+- Always use `const` constructors when possible
+- Extract complex widgets into separate components
+- Use proper keys for list items
+- Implement proper error and loading states
+- Follow Material Design guidelines
+
+### State Management Patterns
+- Use appropriate state management for complexity
+- Keep state as local as possible
+- Implement proper disposal
+- Handle loading and error states consistently
+
+### Performance Patterns
+- Use `ListView.builder` for large lists
+- Implement image caching
+- Use pagination for large datasets
+- Optimize build methods
+- Profile performance regularly
+
+### Estate App Specific Patterns
+- Property card with image, details, and favorite button
+- Search with debouncing and filtering
+- Image galleries with zoom and indicators
+- Contact forms with validation
+- Responsive layouts for different screen sizes
+- Map integration for location features
+
+These patterns provide a solid foundation for building consistent, performant, and user-friendly features in your estate mobile app!
+

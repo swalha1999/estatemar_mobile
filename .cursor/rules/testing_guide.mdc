@@ -1,0 +1,689 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Testing Guide - Estate Mobile App
+
+## Testing Strategy
+
+### Test Types
+1. **Unit Tests** - Test individual functions and classes
+2. **Widget Tests** - Test individual widgets and their behavior
+3. **Integration Tests** - Test complete user flows
+4. **Golden Tests** - Test widget visual appearance
+
+## Setup Testing Dependencies
+
+### pubspec.yaml
+```yaml
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^1.0.1
+  golden_toolkit: ^0.15.0
+  integration_test:
+    sdk: flutter
+```
+
+## Unit Testing
+
+### Testing Models
+```dart
+// test/models/property_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+void main() {
+  group('Property Model', () {
+    test('should create Property from JSON', () {
+      // Arrange
+      final json = {
+        'id': '123',
+        'title': 'Beautiful House',
+        'price': 500000,
+        'location': 'New York',
+        'imageUrl': 'https://example.com/image.jpg',
+        'images': ['image1.jpg', 'image2.jpg'],
+        'bedrooms': 3,
+        'bathrooms': 2,
+        'area': 1500.0,
+      };
+
+      // Act
+      final property = Property.fromJson(json);
+
+      // Assert
+      expect(property.id, '123');
+      expect(property.title, 'Beautiful House');
+      expect(property.price, 500000);
+      expect(property.formattedPrice, '\$500000');
+      expect(property.bedrooms, 3);
+      expect(property.images.length, 2);
+    });
+
+    test('should format price correctly', () {
+      // Arrange
+      const property = Property(
+        id: '123',
+        title: 'Test',
+        price: 1234567.89,
+        location: 'Test Location',
+        imageUrl: 'test.jpg',
+        images: [],
+        bedrooms: 3,
+        bathrooms: 2,
+        area: 1500.0,
+      );
+
+      // Act & Assert
+      expect(property.formattedPrice, '\$1234568');
+    });
+  });
+}
+```
+
+### Testing Services with Mocks
+```dart
+// test/services/api_service_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:http/http.dart' as http;
+import 'package:estatemar_mobile/services/api_service.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+class MockHttpClient extends Mock implements http.Client {}
+
+void main() {
+  group('ApiService', () {
+    late ApiService apiService;
+    late MockHttpClient mockHttpClient;
+
+    setUp(() {
+      mockHttpClient = MockHttpClient();
+      apiService = ApiService(client: mockHttpClient);
+    });
+
+    test('should return properties when API call is successful', () async {
+      // Arrange
+      const responseBody = '''
+      [
+        {
+          "id": "1",
+          "title": "House 1",
+          "price": 500000,
+          "location": "New York",
+          "imageUrl": "image1.jpg",
+          "images": ["image1.jpg"],
+          "bedrooms": 3,
+          "bathrooms": 2,
+          "area": 1500.0
+        }
+      ]
+      ''';
+
+      when(() => mockHttpClient.get(
+        Uri.parse('https://api.estatemar.com/properties'),
+        headers: any(named: 'headers'),
+      )).thenAnswer(
+        (_) async => http.Response(responseBody, 200),
+      );
+
+      // Act
+      final properties = await apiService.getProperties();
+
+      // Assert
+      expect(properties.length, 1);
+      expect(properties.first.title, 'House 1');
+      expect(properties.first.price, 500000);
+    });
+
+    test('should throw exception when API call fails', () async {
+      // Arrange
+      when(() => mockHttpClient.get(
+        Uri.parse('https://api.estatemar.com/properties'),
+        headers: any(named: 'headers'),
+      )).thenAnswer(
+        (_) async => http.Response('Server Error', 500),
+      );
+
+      // Act & Assert
+      expect(
+        () => apiService.getProperties(),
+        throwsA(isA<Exception>()),
+      );
+    });
+  });
+}
+```
+
+### Testing Providers
+```dart
+// test/providers/property_provider_test.dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:estatemar_mobile/providers/property_provider.dart';
+import 'package:estatemar_mobile/services/api_service.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+class MockApiService extends Mock implements ApiService {}
+
+void main() {
+  group('PropertyProvider', () {
+    late PropertyProvider propertyProvider;
+    late MockApiService mockApiService;
+
+    setUp(() {
+      mockApiService = MockApiService();
+      propertyProvider = PropertyProvider(apiService: mockApiService);
+    });
+
+    test('should load properties successfully', () async {
+      // Arrange
+      final mockProperties = [
+        const Property(
+          id: '1',
+          title: 'Test Property',
+          price: 500000,
+          location: 'Test Location',
+          imageUrl: 'test.jpg',
+          images: [],
+          bedrooms: 3,
+          bathrooms: 2,
+          area: 1500.0,
+        ),
+      ];
+
+      when(() => mockApiService.getProperties())
+          .thenAnswer((_) async => mockProperties);
+
+      // Act
+      await propertyProvider.loadProperties();
+
+      // Assert
+      expect(propertyProvider.properties.length, 1);
+      expect(propertyProvider.properties.first.title, 'Test Property');
+      expect(propertyProvider.isLoading, false);
+      expect(propertyProvider.error, null);
+    });
+
+    test('should handle error when loading properties fails', () async {
+      // Arrange
+      when(() => mockApiService.getProperties())
+          .thenThrow(Exception('Network error'));
+
+      // Act
+      await propertyProvider.loadProperties();
+
+      // Assert
+      expect(propertyProvider.properties.isEmpty, true);
+      expect(propertyProvider.isLoading, false);
+      expect(propertyProvider.error, contains('Network error'));
+    });
+
+    test('should toggle favorite property', () {
+      // Arrange
+      const property = Property(
+        id: '1',
+        title: 'Test Property',
+        price: 500000,
+        location: 'Test Location',
+        imageUrl: 'test.jpg',
+        images: [],
+        bedrooms: 3,
+        bathrooms: 2,
+        area: 1500.0,
+      );
+
+      // Act
+      propertyProvider.toggleFavorite(property);
+
+      // Assert
+      expect(propertyProvider.isFavorite(property), true);
+      expect(propertyProvider.favoriteProperties.length, 1);
+
+      // Act again (toggle off)
+      propertyProvider.toggleFavorite(property);
+
+      // Assert
+      expect(propertyProvider.isFavorite(property), false);
+      expect(propertyProvider.favoriteProperties.isEmpty, true);
+    });
+  });
+}
+```
+
+## Widget Testing
+
+### Testing Custom Widgets
+```dart
+// test/widgets/property_card_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:estatemar_mobile/widgets/property_card.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+void main() {
+  group('PropertyCard Widget', () {
+    const testProperty = Property(
+      id: '1',
+      title: 'Beautiful House',
+      price: 500000,
+      location: 'New York, NY',
+      imageUrl: 'https://example.com/image.jpg',
+      images: [],
+      bedrooms: 3,
+      bathrooms: 2,
+      area: 1500.0,
+    );
+
+    testWidgets('should display property information', (tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PropertyCard(
+              property: testProperty,
+              onFavoritePressed: () {},
+              isFavorite: false,
+            ),
+          ),
+        ),
+      );
+
+      // Assert
+      expect(find.text('Beautiful House'), findsOneWidget);
+      expect(find.text('\$500000'), findsOneWidget);
+      expect(find.text('New York, NY'), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    });
+
+    testWidgets('should show filled heart when property is favorite', (tester) async {
+      // Arrange & Act
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PropertyCard(
+              property: testProperty,
+              onFavoritePressed: () {},
+              isFavorite: true,
+            ),
+          ),
+        ),
+      );
+
+      // Assert
+      expect(find.byIcon(Icons.favorite), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_border), findsNothing);
+    });
+
+    testWidgets('should call callback when favorite button is pressed', (tester) async {
+      // Arrange
+      bool callbackCalled = false;
+      void onFavoritePressed() {
+        callbackCalled = true;
+      }
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: PropertyCard(
+              property: testProperty,
+              onFavoritePressed: onFavoritePressed,
+              isFavorite: false,
+            ),
+          ),
+        ),
+      );
+
+      // Act
+      await tester.tap(find.byIcon(Icons.favorite_border));
+      await tester.pump();
+
+      // Assert
+      expect(callbackCalled, true);
+    });
+  });
+}
+```
+
+### Testing Screens with Providers
+```dart
+// test/screens/property_list_screen_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:estatemar_mobile/screens/properties/property_list_screen.dart';
+import 'package:estatemar_mobile/providers/property_provider.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+class MockPropertyProvider extends Mock implements PropertyProvider {}
+
+void main() {
+  group('PropertyListScreen', () {
+    late MockPropertyProvider mockPropertyProvider;
+
+    setUp(() {
+      mockPropertyProvider = MockPropertyProvider();
+    });
+
+    Widget createTestWidget() {
+      return MaterialApp(
+        home: ChangeNotifierProvider<PropertyProvider>.value(
+          value: mockPropertyProvider,
+          child: const PropertyListScreen(),
+        ),
+      );
+    }
+
+    testWidgets('should show loading indicator when loading', (tester) async {
+      // Arrange
+      when(() => mockPropertyProvider.isLoading).thenReturn(true);
+      when(() => mockPropertyProvider.error).thenReturn(null);
+      when(() => mockPropertyProvider.filteredProperties).thenReturn([]);
+
+      // Act
+      await tester.pumpWidget(createTestWidget());
+
+      // Assert
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    });
+
+    testWidgets('should show error message when there is an error', (tester) async {
+      // Arrange
+      when(() => mockPropertyProvider.isLoading).thenReturn(false);
+      when(() => mockPropertyProvider.error).thenReturn('Network error');
+      when(() => mockPropertyProvider.filteredProperties).thenReturn([]);
+
+      // Act
+      await tester.pumpWidget(createTestWidget());
+
+      // Assert
+      expect(find.text('Error: Network error'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+    });
+
+    testWidgets('should show property list when properties are loaded', (tester) async {
+      // Arrange
+      final properties = [
+        const Property(
+          id: '1',
+          title: 'House 1',
+          price: 500000,
+          location: 'Location 1',
+          imageUrl: 'image1.jpg',
+          images: [],
+          bedrooms: 3,
+          bathrooms: 2,
+          area: 1500.0,
+        ),
+        const Property(
+          id: '2',
+          title: 'House 2',
+          price: 600000,
+          location: 'Location 2',
+          imageUrl: 'image2.jpg',
+          images: [],
+          bedrooms: 4,
+          bathrooms: 3,
+          area: 2000.0,
+        ),
+      ];
+
+      when(() => mockPropertyProvider.isLoading).thenReturn(false);
+      when(() => mockPropertyProvider.error).thenReturn(null);
+      when(() => mockPropertyProvider.filteredProperties).thenReturn(properties);
+
+      // Act
+      await tester.pumpWidget(createTestWidget());
+
+      // Assert
+      expect(find.text('House 1'), findsOneWidget);
+      expect(find.text('House 2'), findsOneWidget);
+      expect(find.text('\$500000'), findsOneWidget);
+      expect(find.text('\$600000'), findsOneWidget);
+    });
+  });
+}
+```
+
+## Golden Tests
+
+### Visual Regression Testing
+```dart
+// test/golden/property_card_golden_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:golden_toolkit/golden_toolkit.dart';
+import 'package:estatemar_mobile/widgets/property_card.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+void main() {
+  group('PropertyCard Golden Tests', () {
+    const testProperty = Property(
+      id: '1',
+      title: 'Beautiful Modern House',
+      price: 750000,
+      location: 'San Francisco, CA',
+      imageUrl: 'https://example.com/image.jpg',
+      images: [],
+      bedrooms: 4,
+      bathrooms: 3,
+      area: 2500.0,
+    );
+
+    testGoldens('PropertyCard should match golden file', (tester) async {
+      final builder = DeviceBuilder()
+        ..overrideDevicesForAllScenarios(devices: [Device.phone])
+        ..addScenario(
+          widget: PropertyCard(
+            property: testProperty,
+            onFavoritePressed: () {},
+            isFavorite: false,
+          ),
+          name: 'default_state',
+        )
+        ..addScenario(
+          widget: PropertyCard(
+            property: testProperty,
+            onFavoritePressed: () {},
+            isFavorite: true,
+          ),
+          name: 'favorite_state',
+        );
+
+      await tester.pumpDeviceBuilder(builder);
+      await screenMatchesGolden(tester, 'property_card');
+    });
+  });
+}
+```
+
+## Integration Tests
+
+### End-to-End Testing
+```dart
+// integration_test/app_test.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+import 'package:estatemar_mobile/main.dart' as app;
+
+void main() {
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  group('Estate App Integration Tests', () {
+    testWidgets('full property search flow', (tester) async {
+      // Start the app
+      app.main();
+      await tester.pumpAndSettle();
+
+      // Verify home screen loads
+      expect(find.text('Estate Mobile'), findsOneWidget);
+
+      // Navigate to property search
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      // Enter search query
+      await tester.enterText(find.byType(TextField), 'San Francisco');
+      await tester.tap(find.byIcon(Icons.search));
+      await tester.pumpAndSettle();
+
+      // Wait for search results
+      await tester.pump(const Duration(seconds: 2));
+
+      // Verify search results appear
+      expect(find.byType(ListView), findsOneWidget);
+
+      // Tap on first property
+      await tester.tap(find.byType(Card).first);
+      await tester.pumpAndSettle();
+
+      // Verify property details screen
+      expect(find.text('Property Details'), findsOneWidget);
+
+      // Test favorite functionality
+      await tester.tap(find.byIcon(Icons.favorite_border));
+      await tester.pumpAndSettle();
+
+      // Verify favorite icon changes
+      expect(find.byIcon(Icons.favorite), findsOneWidget);
+    });
+
+    testWidgets('authentication flow', (tester) async {
+      app.main();
+      await tester.pumpAndSettle();
+
+      // Navigate to profile/login
+      await tester.tap(find.byIcon(Icons.person));
+      await tester.pumpAndSettle();
+
+      // Fill login form
+      await tester.enterText(
+        find.byKey(const Key('email_field')),
+        'test@example.com',
+      );
+      await tester.enterText(
+        find.byKey(const Key('password_field')),
+        'password123',
+      );
+
+      // Submit login
+      await tester.tap(find.text('Login'));
+      await tester.pumpAndSettle();
+
+      // Verify successful login
+      expect(find.text('Welcome back!'), findsOneWidget);
+    });
+  });
+}
+```
+
+## Test Utilities
+
+### Test Helpers
+```dart
+// test/helpers/test_helpers.dart
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:estatemar_mobile/models/property.dart';
+
+class TestHelpers {
+  static const Property sampleProperty = Property(
+    id: '1',
+    title: 'Test Property',
+    price: 500000,
+    location: 'Test Location',
+    imageUrl: 'test.jpg',
+    images: [],
+    bedrooms: 3,
+    bathrooms: 2,
+    area: 1500.0,
+  );
+
+  static Widget createTestApp({required Widget child}) {
+    return MaterialApp(
+      home: Scaffold(body: child),
+    );
+  }
+
+  static Widget createTestAppWithProvider<T extends ChangeNotifier>({
+    required T provider,
+    required Widget child,
+  }) {
+    return MaterialApp(
+      home: ChangeNotifierProvider<T>.value(
+        value: provider,
+        child: Scaffold(body: child),
+      ),
+    );
+  }
+}
+```
+
+## Running Tests
+
+### Commands
+```bash
+# Run all tests
+flutter test
+
+# Run unit tests only
+flutter test test/
+
+# Run widget tests
+flutter test test/widgets/
+
+# Run integration tests
+flutter test integration_test/
+
+# Run tests with coverage
+flutter test --coverage
+
+# Update golden files
+flutter test --update-goldens
+```
+
+### Coverage Reports
+```bash
+# Generate HTML coverage report
+genhtml coverage/lcov.info -o coverage/html
+
+# Open coverage report
+open coverage/html/index.html
+```
+
+## Testing Best Practices
+
+### Do's ✅
+- Write tests for critical business logic
+- Test error scenarios and edge cases
+- Use descriptive test names
+- Follow AAA pattern (Arrange, Act, Assert)
+- Mock external dependencies
+- Test user interactions and flows
+- Keep tests simple and focused
+- Update golden files when UI changes
+
+### Don'ts ❌
+- Don't test implementation details
+- Don't write overly complex tests
+- Don't forget to test error states
+- Don't ignore flaky tests
+- Don't test third-party library code
+- Don't hardcode test data that might change
+
+### Estate App Specific Testing
+- Test property search and filtering
+- Test favorite functionality
+- Test image loading and caching
+- Test location permissions
+- Test authentication flows
+- Test offline functionality
+- Test different screen sizes and orientations
+
+Remember: Good tests are your safety net for refactoring and adding new features!
+

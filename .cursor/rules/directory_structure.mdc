@@ -1,0 +1,108 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Directory Structure Guide - Estate Mobile App
+
+## Recommended Structure (Simple Feature-Based)
+
+```
+lib/
+├── main.dart
+├── screens/
+│   ├── auth/
+│   │   ├── login_screen.dart
+│   │   ├── register_screen.dart
+│   │   └── forgot_password_screen.dart
+│   ├── home/
+│   │   ├── home_screen.dart
+│   │   └── widgets/
+│   │       ├── property_card.dart
+│   │       └── search_bar.dart
+│   ├── properties/
+│   │   ├── property_list_screen.dart
+│   │   ├── property_detail_screen.dart
+│   │   ├── property_search_screen.dart
+│   │   └── property_favorites_screen.dart
+│   ├── profile/
+│   │   ├── profile_screen.dart
+│   │   ├── edit_profile_screen.dart
+│   │   └── settings_screen.dart
+│   └── map/
+│       └── map_screen.dart
+├── widgets/
+│   ├── common_button.dart
+│   ├── custom_app_bar.dart
+│   ├── loading_indicator.dart
+│   ├── custom_text_field.dart
+│   └── error_widget.dart
+├── models/
+│   ├── user.dart
+│   ├── property.dart
+│   ├── location.dart
+│   └── api_response.dart
+├── services/
+│   ├── api_service.dart
+│   ├── auth_service.dart
+│   ├── location_service.dart
+│   └── storage_service.dart
+├── utils/
+│   ├── constants.dart
+│   ├── validators.dart
+│   ├── helpers.dart
+│   └── extensions.dart
+└── theme/
+    ├── app_theme.dart
+    ├── colors.dart
+    └── text_styles.dart
+```
+
+## Where to Add New Pages
+
+### Authentication Pages
+- Location: `lib/screens/auth/`
+- Examples: `login_screen.dart`, `register_screen.dart`
+
+### Property Related Pages
+- Location: `lib/screens/properties/`
+- Examples: `property_list_screen.dart`, `property_detail_screen.dart`
+
+### Profile Pages
+- Location: `lib/screens/profile/`
+- Examples: `profile_screen.dart`, `edit_profile_screen.dart`
+
+### Home/Dashboard Pages
+- Location: `lib/screens/home/`
+- Examples: `home_screen.dart`, `dashboard_screen.dart`
+
+## Quick Start for New Features
+
+1. Create feature folder in `lib/screens/`
+2. Add main screen file
+3. Create `widgets/` subfolder if needed for feature-specific widgets
+4. Add shared widgets to `lib/widgets/`
+5. Create models in `lib/models/`
+6. Add services in `lib/services/`
+
+## Example: Adding a "Bookings" Feature
+
+```
+lib/screens/bookings/
+├── booking_list_screen.dart
+├── booking_detail_screen.dart
+├── create_booking_screen.dart
+└── widgets/
+    ├── booking_card.dart
+    └── booking_status_badge.dart
+```
+
+Then add the booking model:
+```
+lib/models/booking.dart
+```
+
+And the service:
+```
+lib/services/booking_service.dart
+``` 

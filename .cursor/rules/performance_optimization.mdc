@@ -1,0 +1,695 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Performance Optimization - Estate Mobile App
+
+## Widget Performance
+
+### Use Const Constructors
+```dart
+// ✅ Good: Use const constructors
+class PropertyCard extends StatelessWidget {
+  const PropertyCard({super.key, required this.property});
+  
+  final Property property;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          const PropertyImage(), // ✅ const widget
+          PropertyDetails(property: property),
+        ],
+      ),
+    );
+  }
+}
+
+// ❌ Bad: Missing const
+class PropertyCard extends StatelessWidget {
+  PropertyCard({super.key, required this.property}); // Missing const
+}
+```
+
+### Avoid Rebuilding Expensive Widgets
+```dart
+// ✅ Good: Extract expensive widgets
+class PropertyListScreen extends StatelessWidget {
+  const PropertyListScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const CustomAppBar(), // ✅ const, won't rebuild
+      body: Consumer<PropertyProvider>(
+        builder: (context, provider, child) {
+          return ListView.builder(
+            itemCount: provider.properties.length,
+            itemBuilder: (context, index) {
+              return PropertyCard(
+                key: ValueKey(provider.properties[index].id), // ✅ stable key
+                property: provider.properties[index],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ❌ Bad: Rebuilding expensive widgets
+Widget build(BuildContext context) {
+  return Consumer<PropertyProvider>(
+    builder: (context, provider, child) {
+      return Scaffold(
+        appBar: AppBar( // ❌ Rebuilds on every provider change
+          title: Text('Properties (${provider.properties.length})'),
+        ),
+        body: ListView.builder(
+          itemCount: provider.properties.length,
+          itemBuilder: (context, index) {
+            return PropertyCard(property: provider.properties[index]);
+          },
+        ),
+      );
+    },
+  );
+}
+```
+
+### Use RepaintBoundary for Expensive Widgets
+```dart
+// ✅ Good: RepaintBoundary for complex animations
+class PropertyImageGallery extends StatelessWidget {
+  const PropertyImageGallery({super.key, required this.images});
+  
+  final List<String> images;
+  
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: PageView.builder(
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          return AnimatedImage(imageUrl: images[index]);
+        },
+      ),
+    );
+  }
+}
+```
+
+### Optimize ListView Performance
+```dart
+// ✅ Good: ListView.builder for large lists
+class PropertyList extends StatelessWidget {
+  const PropertyList({super.key, required this.properties});
+  
+  final List<Property> properties;
+  
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: properties.length,
+      itemExtent: 280, // ✅ Fixed height improves performance
+      itemBuilder: (context, index) {
+        return PropertyCard(
+          key: ValueKey(properties[index].id),
+          property: properties[index],
+        );
+      },
+    );
+  }
+}
+
+// ❌ Bad: ListView for large lists
+Widget build(BuildContext context) {
+  return ListView(
+    children: properties.map((property) => PropertyCard(property: property)).toList(),
+  );
+}
+```
+
+## Image Performance
+
+### Image Caching Strategy
+```dart
+// ✅ Good: Proper image caching
+class PropertyImage extends StatelessWidget {
+  const PropertyImage({
+    super.key,
+    required this.imageUrl,
+    this.height = 200,
+    this.width = double.infinity,
+  });
+  
+  final String imageUrl;
+  final double height;
+  final double width;
+  
+  @override
+  Widget build(BuildContext context) {
+    return CachedNetworkImage(
+      imageUrl: imageUrl,
+      height: height,
+      width: width,
+      fit: BoxFit.cover,
+      memCacheHeight: (height * MediaQuery.of(context).devicePixelRatio).round(),
+      memCacheWidth: (width * MediaQuery.of(context).devicePixelRatio).round(),
+      placeholder: (context, url) => Container(
+        height: height,
+        width: width,
+        color: Colors.grey[300],
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+      errorWidget: (context, url, error) => Container(
+        height: height,
+        width: width,
+        color: Colors.grey[300],
+        child: const Icon(Icons.error),
+      ),
+    );
+  }
+}
+```
+
+### Image Optimization
+```dart
+// ✅ Good: Optimized image loading
+class OptimizedImageProvider {
+  static ImageProvider getOptimizedImage(String url, {int? width, int? height}) {
+    // Add image optimization parameters
+    final optimizedUrl = '$url?w=$width&h=$height&q=80&f=webp';
+    
+    return CachedNetworkImageProvider(
+      optimizedUrl,
+      cacheKey: '${url}_${width}x$height',
+    );
+  }
+}
+
+// Usage
+Image(
+  image: OptimizedImageProvider.getOptimizedImage(
+    property.imageUrl,
+    width: 400,
+    height: 300,
+  ),
+  fit: BoxFit.cover,
+)
+```
+
+## Memory Management
+
+### Proper Disposal
+```dart
+// ✅ Good: Proper disposal of resources
+class PropertyMapScreen extends StatefulWidget {
+  const PropertyMapScreen({super.key});
+
+  @override
+  State<PropertyMapScreen> createState() => _PropertyMapScreenState();
+}
+
+class _PropertyMapScreenState extends State<PropertyMapScreen>
+    with TickerProviderStateMixin {
+  late GoogleMapController _mapController;
+  late AnimationController _animationController;
+  StreamSubscription<Position>? _positionStream;
+  Timer? _searchTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 300),
+      vsync: this,
+    );
+    _setupLocationStream();
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    _animationController.dispose();
+    _positionStream?.cancel();
+    _searchTimer?.cancel();
+    super.dispose();
+  }
+
+  void _setupLocationStream() {
+    _positionStream = Geolocator.getPositionStream().listen(
+      (position) {
+        // Handle position updates
+      },
+      onError: (error) {
+        // Handle errors
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: GoogleMap(
+        onMapCreated: (controller) => _mapController = controller,
+        // Map configuration
+      ),
+    );
+  }
+}
+```
+
+### Memory-Efficient State Management
+```dart
+// ✅ Good: Selector for specific rebuilds
+class PropertyPriceWidget extends StatelessWidget {
+  const PropertyPriceWidget({super.key, required this.propertyId});
+  
+  final String propertyId;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Selector<PropertyProvider, double?>(
+      selector: (context, provider) => 
+          provider.getPropertyById(propertyId)?.price,
+      builder: (context, price, child) {
+        if (price == null) return const SizedBox.shrink();
+        
+        return Text(
+          '\$${price.toStringAsFixed(0)}',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.green,
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ❌ Bad: Rebuilds entire widget for any property change
+class PropertyPriceWidget extends StatelessWidget {
+  const PropertyPriceWidget({super.key, required this.propertyId});
+  
+  final String propertyId;
+  
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PropertyProvider>(
+      builder: (context, provider, child) {
+        final property = provider.getPropertyById(propertyId);
+        if (property == null) return const SizedBox.shrink();
+        
+        return Text('\$${property.price.toStringAsFixed(0)}');
+      },
+    );
+  }
+}
+```
+
+## Network Performance
+
+### Efficient API Calls
+```dart
+// ✅ Good: Debounced search with caching
+class PropertySearchService {
+  final ApiService _apiService;
+  final Map<String, List<Property>> _searchCache = {};
+  Timer? _debounceTimer;
+  
+  PropertySearchService(this._apiService);
+  
+  Future<List<Property>> searchProperties(String query) async {
+    // Return cached results if available
+    if (_searchCache.containsKey(query)) {
+      return _searchCache[query]!;
+    }
+    
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+    
+    // Create new debounced search
+    final completer = Completer<List<Property>>();
+    
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final results = await _apiService.searchProperties(query);
+        _searchCache[query] = results;
+        completer.complete(results);
+      } catch (e) {
+        completer.completeError(e);
+      }
+    });
+    
+    return completer.future;
+  }
+  
+  void clearCache() {
+    _searchCache.clear();
+  }
+}
+```
+
+### Pagination for Large Lists
+```dart
+// ✅ Good: Pagination for property lists
+class PropertyListProvider with ChangeNotifier {
+  final ApiService _apiService = ApiService();
+  
+  List<Property> _properties = [];
+  bool _isLoading = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  static const int _pageSize = 20;
+  
+  List<Property> get properties => _properties;
+  bool get isLoading => _isLoading;
+  bool get hasMore => _hasMore;
+  
+  Future<void> loadProperties({bool refresh = false}) async {
+    if (_isLoading) return;
+    
+    if (refresh) {
+      _currentPage = 1;
+      _properties.clear();
+      _hasMore = true;
+    }
+    
+    _isLoading = true;
+    notifyListeners();
+    
+    try {
+      final newProperties = await _apiService.getProperties(
+        page: _currentPage,
+        limit: _pageSize,
+      );
+      
+      if (refresh) {
+        _properties = newProperties;
+      } else {
+        _properties.addAll(newProperties);
+      }
+      
+      _hasMore = newProperties.length == _pageSize;
+      _currentPage++;
+      
+    } catch (e) {
+      // Handle error
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+  
+  Future<void> loadMore() async {
+    if (!_hasMore || _isLoading) return;
+    await loadProperties();
+  }
+}
+
+// Usage in ListView
+class PropertyListView extends StatelessWidget {
+  const PropertyListView({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PropertyListProvider>(
+      builder: (context, provider, child) {
+        return ListView.builder(
+          itemCount: provider.properties.length + (provider.hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == provider.properties.length) {
+              // Load more indicator
+              provider.loadMore();
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            }
+            
+            return PropertyCard(property: provider.properties[index]);
+          },
+        );
+      },
+    );
+  }
+}
+```
+
+## Animation Performance
+
+### Efficient Animations
+```dart
+// ✅ Good: Use Transform for performant animations
+class PropertyCardAnimation extends StatefulWidget {
+  const PropertyCardAnimation({super.key, required this.child});
+  
+  final Widget child;
+  
+  @override
+  State<PropertyCardAnimation> createState() => _PropertyCardAnimationState();
+}
+
+class _PropertyCardAnimationState extends State<PropertyCardAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+  
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+    
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOut,
+    ));
+    
+    _controller.forward();
+  }
+  
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scaleAnimation.value,
+          child: Opacity(
+            opacity: _opacityAnimation.value,
+            child: widget.child,
+          ),
+        );
+      },
+    );
+  }
+}
+```
+
+## Build Performance
+
+### Avoid Heavy Computations in Build
+```dart
+// ✅ Good: Compute outside build method
+class PropertyStatsWidget extends StatefulWidget {
+  const PropertyStatsWidget({super.key, required this.properties});
+  
+  final List<Property> properties;
+  
+  @override
+  State<PropertyStatsWidget> createState() => _PropertyStatsWidgetState();
+}
+
+class _PropertyStatsWidgetState extends State<PropertyStatsWidget> {
+  late PropertyStats _stats;
+  
+  @override
+  void initState() {
+    super.initState();
+    _computeStats();
+  }
+  
+  @override
+  void didUpdateWidget(PropertyStatsWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.properties != oldWidget.properties) {
+      _computeStats();
+    }
+  }
+  
+  void _computeStats() {
+    _stats = PropertyStats.compute(widget.properties);
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('Average Price: ${_stats.averagePrice}'),
+        Text('Total Properties: ${_stats.totalCount}'),
+        Text('Price Range: ${_stats.priceRange}'),
+      ],
+    );
+  }
+}
+
+// ❌ Bad: Heavy computation in build
+Widget build(BuildContext context) {
+  final averagePrice = widget.properties
+      .map((p) => p.price)
+      .reduce((a, b) => a + b) / widget.properties.length; // ❌ Computed every build
+      
+  return Text('Average Price: \$${averagePrice.toStringAsFixed(0)}');
+}
+```
+
+### Use Keys Appropriately
+```dart
+// ✅ Good: Stable keys for list items
+class PropertyList extends StatelessWidget {
+  const PropertyList({super.key, required this.properties});
+  
+  final List<Property> properties;
+  
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: properties.length,
+      itemBuilder: (context, index) {
+        final property = properties[index];
+        return PropertyCard(
+          key: ValueKey(property.id), // ✅ Stable key
+          property: property,
+        );
+      },
+    );
+  }
+}
+
+// ❌ Bad: No keys or unstable keys
+return PropertyCard(
+  key: ValueKey(index), // ❌ Unstable when list changes
+  property: property,
+);
+```
+
+## Performance Monitoring
+
+### Performance Measurement
+```dart
+// ✅ Good: Performance monitoring
+class PerformanceMonitor {
+  static void measureWidgetBuild(String widgetName, VoidCallback build) {
+    final stopwatch = Stopwatch()..start();
+    build();
+    stopwatch.stop();
+    
+    if (stopwatch.elapsedMilliseconds > 16) { // 60fps threshold
+      debugPrint('⚠️ Slow build: $widgetName took ${stopwatch.elapsedMilliseconds}ms');
+    }
+  }
+  
+  static void measureApiCall(String endpoint, Future<dynamic> call) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      await call;
+    } finally {
+      stopwatch.stop();
+      debugPrint('🌐 API call $endpoint: ${stopwatch.elapsedMilliseconds}ms');
+    }
+  }
+}
+
+// Usage
+@override
+Widget build(BuildContext context) {
+  return PerformanceMonitor.measureWidgetBuild('PropertyCard', () {
+    return Card(
+      child: // widget tree
+    );
+  });
+}
+```
+
+## Performance Best Practices
+
+### Do's ✅
+- Use `const` constructors wherever possible
+- Implement proper widget keys for list items
+- Use `ListView.builder` for large lists
+- Cache expensive computations
+- Dispose of controllers and streams properly
+- Use `RepaintBoundary` for expensive widgets
+- Implement pagination for large datasets
+- Optimize image loading and caching
+- Use `Selector` for targeted rebuilds
+- Profile your app regularly
+
+### Don'ts ❌
+- Don't create objects in `build` methods
+- Don't perform heavy computations in `build`
+- Don't ignore memory leaks
+- Don't use `ListView` with many children
+- Don't rebuild entire widgets unnecessarily
+- Don't forget to dispose resources
+- Don't load full-resolution images unnecessarily
+- Don't make API calls in `build` methods
+
+### Estate App Specific Optimizations
+- Implement image caching for property photos
+- Use pagination for property listings
+- Optimize map rendering performance
+- Cache search results
+- Implement offline data caching
+- Optimize location services usage
+- Use lazy loading for property details
+- Implement proper image resizing
+
+### Performance Testing
+```bash
+# Profile app performance
+flutter run --profile
+
+# Analyze build times
+flutter run --trace-startup
+
+# Memory profiling
+flutter run --enable-vm-service
+
+# Network profiling
+flutter run --verbose
+```
+
+Remember: Profile first, optimize second. Measure the impact of your optimizations!
+

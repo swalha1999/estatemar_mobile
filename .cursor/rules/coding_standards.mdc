@@ -1,0 +1,204 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Coding Standards - Estate Mobile App
+
+## Code Style & Formatting
+
+### Dart Conventions
+- Use `dart format` for consistent formatting
+- Follow official Dart style guide conventions
+- Use meaningful, descriptive variable and function names
+- Prefer `final` over `var` when variable won't be reassigned
+- Use `const` constructors whenever possible for better performance
+- Always use trailing commas in parameter lists and widget trees
+
+### Flutter Widget Best Practices
+- Prefer `StatelessWidget` over `StatefulWidget` when state is not needed
+- Extract complex widget trees into separate widget classes
+- Use `const` constructors for widgets that don't change
+- Implement proper `key` parameters for widgets in lists
+- Use `Builder` widget when you need a new `BuildContext`
+- Prefer composition over inheritance for widgets
+
+### Naming Conventions
+- **Files**: `snake_case.dart`
+- **Classes**: `PascalCase`
+- **Variables/Functions**: `camelCase`
+- **Constants**: `lowerCamelCase` or `SCREAMING_SNAKE_CASE` for compile-time constants
+- **Private members**: prefix with underscore `_`
+
+### Code Organization
+- One widget per file for complex widgets
+- Group related functionality together
+- Use barrel exports (`index.dart`) for cleaner imports
+- Separate business logic from UI logic
+- Follow SOLID principles
+
+## Performance Best Practices
+
+### Widget Performance
+- Use `const` constructors wherever possible
+- Implement `build` method efficiently - avoid heavy computations
+- Use `ListView.builder` for large lists instead of `ListView`
+- Use `RepaintBoundary` for expensive widgets that rarely change
+- Avoid creating objects in `build` methods
+- Use `SingleChildScrollView` only for small content
+
+### Memory Management
+- Always dispose controllers, streams, and animations
+- Cancel subscriptions properly
+- Use `WeakReference` for callback references when appropriate
+- Avoid memory leaks with proper disposal
+
+## Error Handling
+
+### Best Practices
+- Always handle potential null values appropriately
+- Use try-catch blocks for async operations
+- Implement proper error states in UI
+- Use `Result` pattern or similar for data layer error handling
+- Log errors appropriately but avoid logging sensitive information
+
+### UI Error States
+```dart
+// Good: Proper error handling
+Widget build(BuildContext context) {
+  return FutureBuilder<List<Property>>(
+    future: _getProperties(),
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return ErrorWidget(snapshot.error.toString());
+      }
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return LoadingIndicator();
+      }
+      return PropertyList(properties: snapshot.data!);
+    },
+  );
+}
+```
+
+## Async Programming
+
+### Guidelines
+- Always use `async`/`await` instead of `.then()` for better readability
+- Handle `Future` errors with proper try-catch blocks
+- Use `FutureBuilder` and `StreamBuilder` appropriately
+- Implement proper loading states
+- Cancel subscriptions and dispose controllers properly
+
+### Example
+```dart
+// Good: Proper async handling
+Future<void> loadProperties() async {
+  try {
+    setState(() => isLoading = true);
+    final properties = await _apiService.getProperties();
+    setState(() {
+      this.properties = properties;
+      isLoading = false;
+    });
+  } catch (error) {
+    setState(() {
+      this.error = error.toString();
+      isLoading = false;
+    });
+  }
+}
+```
+
+## Security Best Practices
+
+### Data Protection
+- Never hardcode API keys or sensitive data
+- Use secure storage for sensitive information
+- Implement proper input validation
+- Use HTTPS for all network calls
+- Obfuscate code for release builds
+- Implement proper authentication flows
+
+### API Security
+```dart
+// Good: Secure API configuration
+class ApiService {
+  static const String _baseUrl = 'https://api.estatemar.com';
+  static const String _apiKey = String.fromEnvironment('API_KEY');
+  
+  // Never hardcode sensitive data
+}
+```
+
+## Testing Guidelines
+
+### Test Types
+- Write unit tests for business logic
+- Write widget tests for UI components
+- Use `testWidgets` for widget testing
+- Mock dependencies properly
+- Test error scenarios and edge cases
+
+### Test Structure
+```dart
+// Good: Proper test structure
+group('PropertyService', () {
+  late PropertyService propertyService;
+  late MockApiClient mockApiClient;
+
+  setUp(() {
+    mockApiClient = MockApiClient();
+    propertyService = PropertyService(mockApiClient);
+  });
+
+  test('should return properties when API call is successful', () async {
+    // Arrange
+    when(mockApiClient.getProperties()).thenAnswer((_) async => mockProperties);
+
+    // Act
+    final result = await propertyService.getProperties();
+
+    // Assert
+    expect(result, equals(mockProperties));
+  });
+});
+```
+
+## NEVER Do ❌
+
+- Never use `GlobalKey` unless absolutely necessary
+- Never ignore lint warnings without good reason
+- Never use `setState` after `dispose`
+- Never use `BuildContext` across async gaps without checking `mounted`
+- Never hardcode colors, strings, or dimensions
+- Never use `print()` in production code
+- Never ignore accessibility requirements
+- Never commit API keys or sensitive data
+
+## ALWAYS Do ✅
+
+- Always dispose resources properly
+- Always handle null safety appropriately
+- Always use const constructors when possible
+- Always validate user input
+- Always implement proper error states
+- Always test on different devices and screen sizes
+- Always follow the existing project structure
+- Always update dependencies regularly
+
+## Estate App Specific Rules
+
+### Property Data
+- Always validate property data before display
+- Implement proper image caching for property photos
+- Handle location permissions gracefully
+- Use proper currency formatting
+
+### User Experience
+- Implement search and filter functionality efficiently
+- Cache property listings for offline viewing
+- Handle map integration properly (Google Maps/Apple Maps)
+- Provide proper loading states for all async operations
+
+Remember: Clean, maintainable, and performant code is more important than clever code. Prioritize readability and maintainability over brevity. 
