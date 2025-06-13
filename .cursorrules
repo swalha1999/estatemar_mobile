@@ -1,0 +1,176 @@
+# Flutter Best Practices - Cursor Rules
+
+## Project Context
+This is a Flutter mobile application project using Flutter 3.7.2+ with Dart SDK ^3.7.2.
+
+## Code Style & Formatting
+
+### Dart Conventions
+- Use `dart format` for consistent formatting
+- Follow official Dart style guide conventions
+- Use meaningful, descriptive variable and function names
+- Prefer `final` over `var` when variable won't be reassigned
+- Use `const` constructors whenever possible for better performance
+- Always use trailing commas in parameter lists and widget trees for better formatting
+
+### Flutter Widget Best Practices
+- Prefer `StatelessWidget` over `StatefulWidget` when state is not needed
+- Extract complex widget trees into separate widget classes
+- Use `const` constructors for widgets that don't change
+- Implement proper `key` parameters for widgets in lists
+- Use `Builder` widget when you need a new `BuildContext`
+- Prefer composition over inheritance for widgets
+
+## File Structure & Organization
+
+### Directory Structure
+```
+lib/
+├── main.dart
+├── core/
+│   ├── constants/
+│   ├── errors/
+│   ├── network/
+│   ├── utils/
+│   └── theme/
+├── features/
+│   └── [feature_name]/
+│       ├── data/
+│       ├── domain/
+│       └── presentation/
+├── shared/
+│   ├── widgets/
+│   ├── models/
+│   └── services/
+└── config/
+    ├── routes/
+    └── environment/
+```
+
+### Naming Conventions
+- Files: `snake_case.dart`
+- Classes: `PascalCase`
+- Variables/Functions: `camelCase`
+- Constants: `lowerCamelCase` or `SCREAMING_SNAKE_CASE` for compile-time constants
+- Private members: prefix with underscore `_`
+
+## State Management
+- Use appropriate state management solution (Provider, Riverpod, Bloc, etc.)
+- Keep state as local as possible
+- Use `ValueNotifier` for simple state changes
+- Implement proper disposal of controllers and streams
+- Avoid using `setState` in complex widgets
+
+## Performance Best Practices
+- Use `const` constructors wherever possible
+- Implement `build` method efficiently - avoid heavy computations
+- Use `ListView.builder` for large lists instead of `ListView`
+- Implement proper `shouldRebuild` logic for custom widgets
+- Use `RepaintBoundary` for expensive widgets that rarely change
+- Avoid creating objects in `build` methods
+- Use `SingleChildScrollView` only for small content
+
+## Error Handling
+- Always handle potential null values appropriately
+- Use try-catch blocks for async operations
+- Implement proper error states in UI
+- Use `Result` pattern or similar for data layer error handling
+- Log errors appropriately but avoid logging sensitive information
+
+## Async Programming
+- Always use `async`/`await` instead of `.then()` for better readability
+- Handle `Future` errors with proper try-catch blocks
+- Use `FutureBuilder` and `StreamBuilder` appropriately
+- Implement proper loading states
+- Cancel subscriptions and dispose controllers properly
+
+## Testing
+- Write unit tests for business logic
+- Write widget tests for UI components
+- Use `testWidgets` for widget testing
+- Mock dependencies properly
+- Aim for meaningful test coverage, not just high percentage
+- Test error scenarios and edge cases
+
+## Dependencies & Packages
+- Keep dependencies up to date and secure
+- Use well-maintained, popular packages
+- Pin dependency versions appropriately
+- Separate dev dependencies from production dependencies
+- Document why specific packages are chosen
+
+## UI/UX Best Practices
+- Follow Material Design or Cupertino guidelines consistently
+- Implement proper accessibility features (`Semantics` widgets)
+- Use appropriate text scaling and contrast ratios
+- Implement proper keyboard navigation
+- Handle different screen sizes and orientations
+- Use appropriate animations (keep them under 300ms for micro-interactions)
+
+## Security Best Practices
+- Never hardcode API keys or sensitive data
+- Use secure storage for sensitive information
+- Implement proper input validation
+- Use HTTPS for all network calls
+- Obfuscate code for release builds
+- Implement proper authentication flows
+
+## Code Organization Rules
+- One widget per file for complex widgets
+- Group related functionality together
+- Use barrel exports (`index.dart`) for cleaner imports
+- Separate business logic from UI logic
+- Use dependency injection for better testability
+- Follow SOLID principles
+
+## Git & Version Control
+- Use meaningful commit messages
+- Follow conventional commit format
+- Keep commits atomic and focused
+- Use feature branches for development
+- Tag releases appropriately
+
+## Specific Flutter Rules
+- Always dispose controllers, streams, and animations
+- Use `MediaQuery.of(context)` sparingly - pass values down instead
+- Implement proper `operator ==` and `hashCode` for data classes
+- Use `Key` parameters for widgets that can change position
+- Handle keyboard focus properly
+- Implement proper back button handling
+
+## Documentation
+- Document public APIs and complex business logic
+- Use meaningful comments for non-obvious code
+- Keep README updated with setup instructions
+- Document architectural decisions
+
+## Code Review Checklist
+- Check for memory leaks (undisposed controllers)
+- Verify proper error handling
+- Ensure consistent naming conventions
+- Check for performance issues
+- Verify accessibility implementation
+- Test on different screen sizes
+- Check for hardcoded strings (use localization)
+
+## Never Do
+- Never use `GlobalKey` unless absolutely necessary
+- Never ignore lint warnings without good reason
+- Never use `setState` after `dispose`
+- Never use `BuildContext` across async gaps without checking `mounted`
+- Never hardcode colors, strings, or dimensions
+- Never use `print()` in production code
+- Never ignore accessibility requirements
+- Never commit API keys or sensitive data
+
+## Always Do
+- Always dispose resources properly
+- Always handle null safety appropriately
+- Always use const constructors when possible
+- Always validate user input
+- Always implement proper error states
+- Always test on different devices and screen sizes
+- Always follow the existing project structure
+- Always update dependencies regularly
+
+Remember: Clean, maintainable, and performant code is more important than clever code. Prioritize readability and maintainability over brevity. 
