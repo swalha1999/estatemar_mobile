@@ -105,7 +105,7 @@ class ApiService {
       imageUrls: [
         'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       ],
-      propertyType: PropertyType.studio,
+      propertyType: PropertyType.apartment,
       listingType: ListingType.rent,
       isAvailable: true,
       isFeatured: true,
@@ -134,7 +134,7 @@ class ApiService {
         'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
         'https://images.unsplash.com/photo-1572120360610-d971b9d7767c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       ],
-      propertyType: PropertyType.townhouse,
+      propertyType: PropertyType.house,
       listingType: ListingType.rent,
       isAvailable: true,
       isFeatured: false,
