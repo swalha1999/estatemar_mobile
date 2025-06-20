@@ -240,6 +240,20 @@ class ApiService {
     }
   }
 
+  Future<List<Property>> getPropertiesByIds(List<String> ids) async {
+    await Future.delayed(_networkDelay);
+
+    final properties = <Property>[];
+    for (final id in ids) {
+      final property = await getPropertyById(id);
+      if (property != null) {
+        properties.add(property);
+      }
+    }
+    
+    return properties;
+  }
+
   Future<List<Property>> getFeaturedProperties({int limit = 5}) async {
     await Future.delayed(_networkDelay);
 
