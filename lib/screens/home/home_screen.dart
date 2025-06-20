@@ -18,7 +18,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   SortOrder _sortOrder = SortOrder.none;
   final PropertyService _propertyService = PropertyService();
   final Set<String> _favoriteIds = {};
-  bool _searchBarExpanded = false;
   Map<String, dynamic> _currentFilters = {};
 
   static const List<_PropertyTypeTab> _tabs = [
@@ -299,54 +298,6 @@ class AnimatedSearchBar extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _SearchFilterSummary extends StatelessWidget {
-  final Map<String, dynamic> filters;
-  final VoidCallback onEdit;
-  const _SearchFilterSummary({required this.filters, required this.onEdit});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                _filtersText(),
-                style: const TextStyle(fontSize: 15, color: Colors.black87),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.tune),
-              onPressed: onEdit,
-              tooltip: 'Edit Filters',
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _filtersText() {
-    if (filters.isEmpty) return 'No filters applied';
-    final parts = <String>[];
-    if (filters['location'] != null && filters['location'] != 'Any') {
-      parts.add('Location: ${filters['location']}');
-    }
-    if (filters['type'] != null && filters['type'] != 'Any') {
-      parts.add('Type: ${filters['type']}');
-    }
-    if (filters['priceRange'] != null) {
-      final range = filters['priceRange'] as RangeValues;
-      parts.add('Price: \$${range.start.toInt()} - \$${range.end.toInt()}');
-    }
-    return parts.isEmpty ? 'No filters applied' : parts.join('   |   ');
   }
 }
 
