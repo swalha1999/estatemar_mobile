@@ -25,6 +25,7 @@ class Property {
     this.agentEmail,
     this.createdAt,
     this.updatedAt,
+    this.virtualTourUrl,
   });
 
   final String id;
@@ -52,6 +53,7 @@ class Property {
   final String? agentEmail;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final String? virtualTourUrl;
 
   String get formattedPrice {
     if (price >= 1000000) {
@@ -114,6 +116,7 @@ class Property {
     String? agentEmail,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? virtualTourUrl,
   }) {
     return Property(
       id: id ?? this.id,
@@ -141,6 +144,7 @@ class Property {
       agentEmail: agentEmail ?? this.agentEmail,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      virtualTourUrl: virtualTourUrl ?? this.virtualTourUrl,
     );
   }
 
@@ -171,6 +175,7 @@ class Property {
       'agentEmail': agentEmail,
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'virtualTourUrl': virtualTourUrl,
     };
   }
 
@@ -211,6 +216,7 @@ class Property {
       updatedAt: json['updatedAt'] != null 
           ? DateTime.parse(json['updatedAt'])
           : null,
+      virtualTourUrl: json['virtualTourUrl'] as String?,
     );
   }
 

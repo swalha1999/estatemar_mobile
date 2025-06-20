@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/property.dart';
+import '../../widgets/property_3d_viewer.dart';
 
 class PropertyDetailScreen extends StatelessWidget {
   final Property property;
@@ -77,6 +78,13 @@ class PropertyDetailScreen extends StatelessWidget {
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 24),
+          if (property.virtualTourUrl != null) ...[
+            Property3DViewerCard(
+              virtualTourUrl: property.virtualTourUrl,
+              propertyTitle: property.title,
+            ),
+            const SizedBox(height: 24),
+          ],
           if (property.amenities.isNotEmpty) ...[
             Text('Amenities', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),

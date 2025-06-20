@@ -33,6 +33,7 @@ class ApiService {
       agentEmail: 'sarah.johnson@estatemar.com',
       createdAt: DateTime.now().subtract(const Duration(days: 5)),
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      virtualTourUrl: 'https://tourin3d.com',
     ),
     Property(
       id: '2',
@@ -62,6 +63,7 @@ class ApiService {
       agentEmail: 'michael.chen@estatemar.com',
       createdAt: DateTime.now().subtract(const Duration(days: 3)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 12)),
+      virtualTourUrl: 'https://tourin3d.com',
     ),
     Property(
       id: '3',
@@ -91,6 +93,7 @@ class ApiService {
       agentEmail: 'emily.rodriguez@estatemar.com',
       createdAt: DateTime.now().subtract(const Duration(days: 7)),
       updatedAt: DateTime.now().subtract(const Duration(days: 2)),
+      virtualTourUrl: 'https://tourin3d.com',
     ),
     Property(
       id: '4',
@@ -119,6 +122,7 @@ class ApiService {
       agentEmail: 'david.kim@estatemar.com',
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 6)),
+      virtualTourUrl: 'https://tourin3d.com',
     ),
     Property(
       id: '5',
@@ -148,6 +152,7 @@ class ApiService {
       agentEmail: 'lisa.thompson@estatemar.com',
       createdAt: DateTime.now().subtract(const Duration(days: 4)),
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
+      virtualTourUrl: 'https://tourin3d.com',
     ),
   ];
 
