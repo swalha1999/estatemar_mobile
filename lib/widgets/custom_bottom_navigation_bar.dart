@@ -17,7 +17,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80,
+      height: 100,
       decoration: const BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -48,19 +48,18 @@ class CustomBottomNavigationBar extends StatelessWidget {
                        color: isSelected 
                            ? AppColors.primary 
                            : AppColors.greyWithOpacity(0.6),
-                       size: 28,
+                       size: 36,
                      ),
-                     const SizedBox(height: 8),
-                     // Dot indicator for selected item
-                     Container(
-                       width: 6,
-                       height: 6,
-                       decoration: BoxDecoration(
-                         color: isSelected ? AppColors.primary : Colors.transparent,
-                         shape: BoxShape.circle,
+                     const SizedBox(height: 10),
+                     Text(
+                       item.label,
+                       style: TextStyle(
+                         fontSize: 14,
+                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                         color: isSelected ? AppColors.primary : AppColors.greyWithOpacity(0.6),
                        ),
                      ),
-                     const SizedBox(height: 12),
+                     const SizedBox(height: 14),
                    ],
                  ),
               ),
