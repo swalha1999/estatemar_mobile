@@ -3,6 +3,7 @@ import '../../theme/colors.dart';
 import '../../widgets/property_card.dart';
 import '../../models/property.dart';
 import '../../services/property_service.dart';
+import '../properties/property_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -215,6 +216,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       property: property,
                       isFavorite: _favoriteIds.contains(property.id),
                       onFavoritePressed: () => _toggleFavorite(property.id),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PropertyDetailScreen(property: property),
+                          ),
+                        );
+                      },
                     );
                   },
                 );

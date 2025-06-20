@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/property_card.dart';
 import '../../services/property_service.dart';
+import '../../screens/properties/property_detail_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
@@ -39,6 +40,14 @@ class FavoritesScreen extends StatelessWidget {
                 onFavoritePressed: () async {
                   await propertyService.toggleFavorite(favorites[index].id);
                   (context as Element).markNeedsBuild();
+                },
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PropertyDetailScreen(property: favorites[index]),
+                    ),
+                  );
                 },
               );
             },
