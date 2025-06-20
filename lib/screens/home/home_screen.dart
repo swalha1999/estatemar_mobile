@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import '../../widgets/property_card.dart';
 import '../../models/property.dart';
-import '../../services/api_service.dart';
 import '../../services/property_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +14,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
-  String _searchQuery = '';
   SortOrder _sortOrder = SortOrder.none;
   final PropertyService _propertyService = PropertyService();
   final Set<String> _favoriteIds = {};
@@ -236,28 +234,4 @@ class _PropertyTypeTab {
   const _PropertyTypeTab({required this.label, required this.icon, required this.type});
 }
 
-class _CurvyTabIndicator extends Decoration {
-  const _CurvyTabIndicator();
-
-  @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) {
-    return _CurvyPainter();
-  }
-}
-
-class _CurvyPainter extends BoxPainter {
-  @override
-  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
-    final Paint paint = Paint();
-    paint.color = AppColors.primary;
-    paint.style = PaintingStyle.fill;
-    final double indicatorHeight = 8.0;
-    final double indicatorRadius = 6.0;
-    final double width = configuration.size!.width * 0.6;
-    final double left = offset.dx + (configuration.size!.width - width) / 2;
-    final double top = offset.dy + configuration.size!.height - indicatorHeight;
-    final Rect rect = Rect.fromLTWH(left, top, width, indicatorHeight);
-    final RRect rRect = RRect.fromRectAndRadius(rect, Radius.circular(indicatorRadius));
-    canvas.drawRRect(rRect, paint);
-  }
-} 
+ 

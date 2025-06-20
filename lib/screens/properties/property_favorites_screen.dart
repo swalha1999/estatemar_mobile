@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/colors.dart';
 import '../../widgets/property_card.dart';
 import '../../services/property_service.dart';
 
