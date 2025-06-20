@@ -14,19 +14,23 @@ class MainNavigationScreen extends StatefulWidget {
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomeScreen(),
-    const SearchScreen(),
-    const FavoritesScreen(),
-  ];
+  Widget _buildPage(int index) {
+    switch (index) {
+      case 0:
+        return const HomeScreen();
+      case 1:
+        return const SearchScreen();
+      case 2:
+        return const FavoritesScreen();
+      default:
+        return const HomeScreen();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _buildPage(_currentIndex),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {

@@ -10,10 +10,10 @@ class SearchScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        title: Text(
-          'Search Properties',
-          style: TextStyle(color: AppColors.grey),
-        ),
+        // title: Text(
+        //   'Search Properties',
+        //   style: TextStyle(color: AppColors.grey),
+        // ),
       ),
       body: const Center(
         child: Column(

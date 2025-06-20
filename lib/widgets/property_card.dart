@@ -7,10 +7,14 @@ class PropertyCard extends StatefulWidget {
     super.key,
     required this.property,
     this.onTap,
+    this.isFavorite = false,
+    this.onFavoritePressed,
   });
 
   final Property property;
   final VoidCallback? onTap;
+  final bool isFavorite;
+  final VoidCallback? onFavoritePressed;
 
   @override
   State<PropertyCard> createState() => _PropertyCardState();
@@ -26,63 +30,89 @@ class _PropertyCardState extends State<PropertyCard> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: Colors.white,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: widget.onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-              child: SizedBox(
-                height: 180,
-                width: double.infinity,
-                child: images.isNotEmpty
-                    ? Stack(
-                        children: [
-                          PageView.builder(
-                            itemCount: images.length,
-                            onPageChanged: (index) {
-                              setState(() => _currentImage = index);
-                            },
-                            itemBuilder: (context, index) {
-                              return Image.network(
-                                images[index],
-                                height: 180,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          ),
-                          if (images.length > 1)
-                            Positioned(
-                              bottom: 8,
-                              left: 0,
-                              right: 0,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: List.generate(images.length, (i) {
-                                  return Container(
-                                    margin: const EdgeInsets.symmetric(horizontal: 2),
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: i == _currentImage
-                                          ? AppColors.primary
-                                          : Colors.white.withOpacity(0.7),
-                                    ),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                  child: SizedBox(
+                    height: 180,
+                    width: double.infinity,
+                    child: images.isNotEmpty
+                        ? Stack(
+                            children: [
+                              PageView.builder(
+                                itemCount: images.length,
+                                onPageChanged: (index) {
+                                  setState(() => _currentImage = index);
+                                },
+                                itemBuilder: (context, index) {
+                                  return Image.network(
+                                    images[index],
+                                    height: 180,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
                                   );
-                                }),
+                                },
                               ),
-                            ),
-                        ],
-                      )
-                    : Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image, size: 48, color: Colors.white),
+                              if (images.length > 1)
+                                Positioned(
+                                  bottom: 8,
+                                  left: 0,
+                                  right: 0,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: List.generate(images.length, (i) {
+                                      return Container(
+                                        margin: const EdgeInsets.symmetric(horizontal: 2),
+                                        width: 8,
+                                        height: 8,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: i == _currentImage
+                                              ? AppColors.primary
+                                              : Colors.white.withOpacity(0.7),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                ),
+                            ],
+                          )
+                        : Container(
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.image, size: 48, color: Colors.white),
+                          ),
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Material(
+                    color: Colors.white.withOpacity(0.8),
+                    shape: const CircleBorder(),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 250),
+                      transitionBuilder: (child, animation) => ScaleTransition(scale: animation, child: child),
+                      child: IconButton(
+                        key: ValueKey(widget.isFavorite),
+                        icon: Icon(
+                          widget.isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: widget.isFavorite ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: widget.onFavoritePressed,
+                        tooltip: widget.isFavorite ? 'Remove from favorites' : 'Add to favorites',
                       ),
-              ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.all(16),

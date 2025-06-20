@@ -2,9 +2,16 @@ import '../models/property.dart';
 import 'api_service.dart';
 import 'favorite_service.dart';
 
+enum SortOrder {
+  none,
+  highToLow,
+  lowToHigh,
+}
+
 class PropertyService {
   final ApiService _apiService = ApiService();
   final FavoriteService _favoriteService = FavoriteService.instance;
+  FavoriteService get favoriteService => _favoriteService;
 
   Future<List<Property>> getProperties({
     int page = 1,
@@ -17,8 +24,9 @@ class PropertyService {
     int? minBedrooms,
     int? maxBedrooms,
     bool? isFeatured,
+    SortOrder sortOrder = SortOrder.none,
   }) async {
-    return await _apiService.getProperties(
+    final properties = await _apiService.getProperties(
       page: page,
       limit: limit,
       location: location,
@@ -30,6 +38,12 @@ class PropertyService {
       maxBedrooms: maxBedrooms,
       isFeatured: isFeatured,
     );
+    if (sortOrder == SortOrder.highToLow) {
+      properties.sort((a, b) => b.price.compareTo(a.price));
+    } else if (sortOrder == SortOrder.lowToHigh) {
+      properties.sort((a, b) => a.price.compareTo(b.price));
+    }
+    return properties;
   }
 
   Future<Property?> getPropertyById(String id) async {
