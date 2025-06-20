@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../screens/properties/property_3d_fullscreen.dart';
 
 class Property3DViewerCard extends StatefulWidget {
   final String? virtualTourUrl;
@@ -85,6 +86,20 @@ class _Property3DViewerCardState extends State<Property3DViewerCard> {
     }
   }
 
+  void _openFullscreen() {
+    if (widget.virtualTourUrl != null && widget.virtualTourUrl!.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Property3DFullscreenScreen(
+            virtualTourUrl: widget.virtualTourUrl!,
+            propertyTitle: widget.propertyTitle,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.virtualTourUrl == null || widget.virtualTourUrl!.isEmpty) {
@@ -113,12 +128,20 @@ class _Property3DViewerCardState extends State<Property3DViewerCard> {
               children: [
                 Icon(Icons.view_in_ar, color: Colors.blue[600], size: 20),
                 const SizedBox(width: 8),
-                const Text(
-                  '3D Virtual Tour',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
+                const Expanded(
+                  child: Text(
+                    '3D Virtual Tour',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
                   ),
+                ),
+                IconButton(
+                  onPressed: _openFullscreen,
+                  icon: Icon(Icons.fullscreen, color: Colors.blue[600]),
+                  tooltip: 'Open in fullscreen',
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),
