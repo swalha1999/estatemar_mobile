@@ -53,6 +53,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         (context, animation) => SizeTransition(
           sizeFactor: animation,
           child: PropertyCard(
+            key: ValueKey(property.id),
             property: property,
             isFavorite: true,
             onFavoritePressed: null,
@@ -99,6 +100,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 return SizeTransition(
                                   sizeFactor: animation,
                                   child: PropertyCard(
+                                    key: ValueKey(property.id),
                                     property: property,
                                     isFavorite: true,
                                     onFavoritePressed: () => _removeFavorite(index),
