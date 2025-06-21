@@ -5,6 +5,7 @@ import '../../models/property.dart';
 import '../../services/property_service.dart';
 import 'package:estatemar_mobile/screens/properties/advanced_search_screen.dart';
 import 'package:estatemar_mobile/screens/properties/property_detail_screen.dart';
+import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -159,8 +160,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 tabs: List.generate(_tabs.length, (index) {
                   final tab = _tabs[index];
                   return Tab(
-                    icon: Icon(tab.icon),
-                    text: tab.label,
+                    icon: Icon(tab.icon, size: 20),
+                    child: Text(
+                      tab.label,
+                      style: const TextStyle(fontSize: 12),
+                    ),
                   );
                 }),
               ),
@@ -199,15 +203,19 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   List<Widget> _buildFilterChips(Map<String, dynamic> filters) {
     final List<Widget> chips = [];
+    final format = NumberFormat.simpleCurrency(decimalDigits: 0);
+
     if (filters['location'] != null && filters['location'] != 'Any') {
       chips.add(_FilterChipText(text: filters['location']));
     }
     if (filters['type'] != null && filters['type'] != 'Any') {
-      chips.add(_FilterChipText(text: filters['type']));
+      chips.add(_FilterChipText(text: (filters['type'] as PropertyType).name.capitalize()));
     }
     if (filters['priceRange'] != null) {
       final range = filters['priceRange'] as RangeValues;
-      chips.add(_FilterChipText(text: '${range.start.toInt()} - ${range.end.toInt()}'));
+      final start = format.format(range.start);
+      final end = format.format(range.end);
+      chips.add(_FilterChipText(text: '$start - $end'));
     }
     return chips;
   }
@@ -270,6 +278,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       ),
     );
   }
+}
+
+extension on String {
+  String capitalize() => this[0].toUpperCase() + substring(1);
 }
 
 class _PropertyTypeTab {
