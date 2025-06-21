@@ -146,7 +146,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             ),
             const SizedBox(height: 24),
           ],
-          _buildAgentInfo(context),
+
         ],
       ),
     );
@@ -173,36 +173,6 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildAgentInfo(BuildContext context) {
-    if (widget.property.agentName == null && widget.property.agentPhone == null && widget.property.agentEmail == null) {
-      return const SizedBox.shrink();
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Agent', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        if (widget.property.agentName != null)
-          Text(widget.property.agentName!, style: Theme.of(context).textTheme.bodyLarge),
-        if (widget.property.agentPhone != null)
-          Row(
-            children: [
-              const Icon(Icons.phone, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(widget.property.agentPhone!, style: const TextStyle(fontSize: 15)),
-            ],
-          ),
-        if (widget.property.agentEmail != null)
-          Row(
-            children: [
-              const Icon(Icons.email, size: 16, color: Colors.grey),
-              const SizedBox(width: 4),
-              Text(widget.property.agentEmail!, style: const TextStyle(fontSize: 15)),
-            ],
-          ),
-      ],
-    );
-  }
 
   Widget _buildBottomBar(BuildContext context) {
     return Container(
