@@ -89,15 +89,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ? Center(child: Text('Failed to load favorites: \\$_error'))
                       : _favorites.isEmpty
                           ? const Center(
-                              child: Text(
-                                'No favorite properties yet.',
-                                style: TextStyle(fontSize: 18, color: Colors.grey),
-                              ),
+                      child: Text(
+                        'No favorite properties yet.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
                             )
                           : AnimatedList(
                               key: _listKey,
                               initialItemCount: _favorites.length,
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                               itemBuilder: (context, index, animation) {
                                 final property = _favorites[index];
                                 return SizeTransition(
@@ -105,20 +105,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   child: PropertyCard(
                                     key: ValueKey(property.id),
                                     property: property,
-                                    isFavorite: true,
+                        isFavorite: true,
                                     onFavoritePressed: () => _removeFavorite(index),
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
                                           builder: (context) => PropertyDetailScreen(property: property),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
                             ),
+                          );
+                        },
+                                  ),
+                  );
+                },
+              ),
             ),
           ],
         ),

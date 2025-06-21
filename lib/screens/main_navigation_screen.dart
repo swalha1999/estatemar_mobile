@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
-import 'properties/property_search_screen.dart';
+// import 'properties/property_search_screen.dart';
 import 'properties/property_favorites_screen.dart';
+import 'news/news_screen.dart';
 import '../widgets/custom_bottom_navigation_bar.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -19,7 +20,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       case 0:
         return const HomeScreen();
       case 1:
-        return const SearchScreen();
+        return const NewsScreen();
       case 2:
         return const FavoritesScreen();
       default:
@@ -44,8 +45,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             label: 'Home',
           ),
           CustomBottomNavigationBarItem(
-            icon: Icons.search,
-            label: 'Search',
+            icon: Icons.article,
+            label: 'News',
           ),
           CustomBottomNavigationBarItem(
             icon: Icons.favorite,

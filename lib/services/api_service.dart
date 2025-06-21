@@ -154,6 +154,36 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
       virtualTourUrl: 'https://tourin3d.com',
     ),
+    Property(
+      id: '6',
+      title: 'Stunning Sea View Apartment',
+      description: 'A beautiful apartment in the heart of Haifa with a stunning view of the Mediterranean sea.',
+      price: 980000,
+      location: 'Haifa, Israel',
+      address: '123 Yefe Nof St, Haifa, Israel',
+      bedrooms: 3,
+      bathrooms: 2,
+      area: 1500.0,
+      imageUrls: [
+        'https://images.unsplash.com/photo-1568605114967-8130f3a36994?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
+        'https://images.unsplash.com/photo-1593696140826-c58b02198d4a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80'
+      ],
+      propertyType: PropertyType.apartment,
+      listingType: ListingType.sale,
+      isAvailable: true,
+      isFeatured: true,
+      amenities: ['Sea View', 'Balcony', 'Modern Kitchen', 'Parking'],
+      latitude: 32.794044,
+      longitude: 34.989571,
+      yearBuilt: 2021,
+      parkingSpaces: 1,
+      agentName: 'Ariel Cohen',
+      agentPhone: '+972 (555) 123-456',
+      agentEmail: 'ariel.cohen@estatemar.com',
+      createdAt: DateTime.now().subtract(const Duration(days: 10)),
+      updatedAt: DateTime.now().subtract(const Duration(days: 3)),
+      virtualTourUrl: 'https://tourin3d.com',
+    ),
   ];
 
   Future<List<Property>> getProperties({

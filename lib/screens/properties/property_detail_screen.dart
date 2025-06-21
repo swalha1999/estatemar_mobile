@@ -1,10 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/property.dart';
 import '../../widgets/property_3d_viewer.dart';
+import '../../services/property_service.dart';
 
-class PropertyDetailScreen extends StatelessWidget {
+class PropertyDetailScreen extends StatefulWidget {
   final Property property;
   const PropertyDetailScreen({super.key, required this.property});
+
+  @override
+  State<PropertyDetailScreen> createState() => _PropertyDetailScreenState();
+}
+
+class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
+  bool _isFavorite = false;
+  final PropertyService _propertyService = PropertyService();
+  bool _loadingFavorite = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteState();
+  }
+
+  Future<void> _loadFavoriteState() async {
+    final isFav = await _propertyService.isFavorite(widget.property.id);
+    if (mounted) {
+      setState(() {
+        _isFavorite = isFav;
+        _loadingFavorite = false;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    setState(() => _loadingFavorite = true);
+    await _propertyService.toggleFavorite(widget.property.id);
+    final isFav = await _propertyService.isFavorite(widget.property.id);
+    if (mounted) {
+      setState(() {
+        _isFavorite = isFav;
+        _loadingFavorite = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +55,7 @@ class PropertyDetailScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(property.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+        title: Text(widget.property.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0.5,
@@ -30,7 +71,7 @@ class PropertyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildImageGallery(BuildContext context) {
-    return _PropertyImageGallery(imageUrls: property.imageUrls);
+    return _PropertyImageGallery(imageUrls: widget.property.imageUrls);
   }
 
   Widget _buildPropertyDetails(BuildContext context) {
@@ -40,12 +81,12 @@ class PropertyDetailScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            property.title,
+            widget.property.title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
-            property.formattedPrice,
+            widget.property.formattedPrice,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.blue, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
@@ -55,7 +96,7 @@ class PropertyDetailScreen extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  property.location,
+                  widget.property.location,
                   style: const TextStyle(color: Colors.grey),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -65,33 +106,40 @@ class PropertyDetailScreen extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              _buildFeatureChip(Icons.bed, '${property.bedrooms} beds'),
+              _buildFeatureChip(Icons.bed, '${widget.property.bedrooms} beds'),
               const SizedBox(width: 8),
-              _buildFeatureChip(Icons.bathroom, '${property.bathrooms} baths'),
+              _buildFeatureChip(Icons.bathroom, '${widget.property.bathrooms} baths'),
               const SizedBox(width: 8),
-              _buildFeatureChip(Icons.square_foot, '${property.area.toInt()} sq ft'),
+              _buildFeatureChip(Icons.square_foot, '${widget.property.area.toInt()} sq ft'),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            property.description,
+            widget.property.description,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 24),
-          if (property.virtualTourUrl != null) ...[
-            Property3DViewerCard(
-              virtualTourUrl: property.virtualTourUrl,
-              propertyTitle: property.title,
+          if (widget.property.latitude != null && widget.property.longitude != null) ...[
+            _PropertyLocationMap(
+              latitude: widget.property.latitude!,
+              longitude: widget.property.longitude!,
             ),
             const SizedBox(height: 24),
           ],
-          if (property.amenities.isNotEmpty) ...[
+          if (widget.property.virtualTourUrl != null) ...[
+            Property3DViewerCard(
+              virtualTourUrl: widget.property.virtualTourUrl,
+              propertyTitle: widget.property.title,
+            ),
+            const SizedBox(height: 24),
+          ],
+          if (widget.property.amenities.isNotEmpty) ...[
             Text('Amenities', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: property.amenities.map((a) => Chip(
+              children: widget.property.amenities.map((a) => Chip(
                 avatar: Icon(_amenityIcon(a), size: 18, color: Colors.grey[800]),
                 label: Text(a),
               )).toList(),
@@ -126,7 +174,7 @@ class PropertyDetailScreen extends StatelessWidget {
   }
 
   Widget _buildAgentInfo(BuildContext context) {
-    if (property.agentName == null && property.agentPhone == null && property.agentEmail == null) {
+    if (widget.property.agentName == null && widget.property.agentPhone == null && widget.property.agentEmail == null) {
       return const SizedBox.shrink();
     }
     return Column(
@@ -134,22 +182,22 @@ class PropertyDetailScreen extends StatelessWidget {
       children: [
         Text('Agent', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
-        if (property.agentName != null)
-          Text(property.agentName!, style: Theme.of(context).textTheme.bodyLarge),
-        if (property.agentPhone != null)
+        if (widget.property.agentName != null)
+          Text(widget.property.agentName!, style: Theme.of(context).textTheme.bodyLarge),
+        if (widget.property.agentPhone != null)
           Row(
             children: [
               const Icon(Icons.phone, size: 16, color: Colors.grey),
               const SizedBox(width: 4),
-              Text(property.agentPhone!, style: const TextStyle(fontSize: 15)),
+              Text(widget.property.agentPhone!, style: const TextStyle(fontSize: 15)),
             ],
           ),
-        if (property.agentEmail != null)
+        if (widget.property.agentEmail != null)
           Row(
             children: [
               const Icon(Icons.email, size: 16, color: Colors.grey),
               const SizedBox(width: 4),
-              Text(property.agentEmail!, style: const TextStyle(fontSize: 15)),
+              Text(widget.property.agentEmail!, style: const TextStyle(fontSize: 15)),
             ],
           ),
       ],
@@ -175,7 +223,7 @@ class PropertyDetailScreen extends StatelessWidget {
         children: [
           const SizedBox(height: 18),
           Text(
-            'Property price: ${property.formattedPrice}',
+            'Property price:  ${widget.property.formattedPrice}',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
           ),
           const SizedBox(height: 20),
@@ -201,17 +249,28 @@ class PropertyDetailScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: TextButton(
-              onPressed: () {
-                // TODO: Implement add to favorites action
-              },
+              onPressed: _loadingFavorite ? null : _toggleFavorite,
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                foregroundColor: Colors.grey[800],
+                foregroundColor: _isFavorite ? Colors.red : Colors.grey[800],
               ),
-              child: Text(
-                'Add to Favorites',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.grey[800]),
-              ),
+              child: _loadingFavorite
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : Colors.grey[800]),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _isFavorite ? Colors.red : Colors.grey[800]),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],
@@ -240,6 +299,74 @@ class PropertyDetailScreen extends StatelessWidget {
     if (lower.contains('floor')) return Icons.layers;
     if (lower.contains('access')) return Icons.lock_open;
     return Icons.check_circle_outline;
+  }
+}
+
+class _PropertyLocationMap extends StatelessWidget {
+  final double latitude;
+  final double longitude;
+
+  const _PropertyLocationMap({required this.latitude, required this.longitude});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Location',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 200,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: LatLng(latitude, longitude),
+                initialZoom: 12.0,
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                  subdomains: const ['a', 'b', 'c', 'd'],
+                ),
+                MarkerLayer(
+                  markers: [
+                    Marker(
+                      point: LatLng(latitude, longitude),
+                      width: 80,
+                      height: 80,
+                      child: Icon(
+                        Icons.location_pin,
+                        size: 40,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+                RichAttributionWidget(
+                  attributions: [
+                    TextSourceAttribution(
+                      '© OpenStreetMap contributors',
+                      onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+                    ),
+                    TextSourceAttribution(
+                      '© CARTO',
+                      onTap: () => launchUrl(Uri.parse('https://carto.com/attributions')),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
