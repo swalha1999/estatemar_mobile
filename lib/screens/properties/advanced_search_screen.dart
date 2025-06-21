@@ -24,16 +24,22 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   double _minPrice = 0;
   double _maxPrice = 2000000;
 
-  final List<String> _locations = [
-    'Any', 'Malibu', 'Downtown LA', 'Pasadena', 'West Hollywood'
-  ];
-  final List<IconData> _locationIcons = [
-    Icons.public, Icons.beach_access, Icons.location_city, Icons.park, Icons.nightlife
-  ];
+  List<String> _locations = ['Any'];
+  List<IconData> _locationIcons = [Icons.public];
+
+  @override
+  void _generateLocationsFromProperties() {
+    final uniqueLocations = widget.properties.map((p) => p.location).toSet().toList();
+    uniqueLocations.sort();
+    _locations = ['Any', ...uniqueLocations];
+    // Assign icons (first is 'Any', rest are defaulted to Icons.location_city)
+    _locationIcons = [Icons.public, ...List.filled(uniqueLocations.length, Icons.location_city)];
+  }
 
   @override
   void initState() {
     super.initState();
+    _generateLocationsFromProperties();
     _initializeFilters();
   }
 
