@@ -3,7 +3,8 @@ import '../../theme/colors.dart';
 import '../../widgets/property_card.dart';
 import '../../models/property.dart';
 import '../../services/property_service.dart';
-import '../properties/property_detail_screen.dart';
+import 'package:estatemar_mobile/screens/properties/advanced_search_screen.dart';
+import 'package:estatemar_mobile/screens/properties/property_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   final PropertyService _propertyService = PropertyService();
   final Set<String> _favoriteIds = {};
   Map<String, dynamic> _currentFilters = {};
+  List<Property> _allProperties = [];
+  bool _isLoading = true;
 
   static const List<_PropertyTypeTab> _tabs = [
     _PropertyTypeTab(label: 'All Listings', icon: Icons.dashboard_customize_outlined, type: null),
@@ -81,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _tabController.addListener(() {
       setState(() {});
     });
-    _fetchFavoriteIds();
+    _fetchInitialData();
   }
 
   @override
@@ -93,11 +96,25 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
   Future<void> _fetchFavoriteIds() async {
     final ids = await _propertyService.favoriteService.getFavoriteIds();
-    setState(() {
-      _favoriteIds
-        ..clear()
-        ..addAll(ids);
-    });
+    if (mounted) {
+      setState(() {
+        _favoriteIds
+          ..clear()
+          ..addAll(ids);
+      });
+    }
+  }
+
+  Future<void> _fetchInitialData() async {
+    setState(() => _isLoading = true);
+    final properties = await _propertyService.getProperties();
+    if (mounted) {
+      setState(() {
+        _allProperties = properties;
+        _isLoading = false;
+      });
+    }
+    await _fetchFavoriteIds();
   }
 
   Future<void> _toggleFavorite(String propertyId) async {
@@ -108,127 +125,74 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          AnimatedSearchBar(
-            onTap: () async {
-              final result = await showGeneralDialog<Map<String, dynamic>>(
-                context: context,
-                barrierDismissible: true,
-                barrierLabel: 'Search',
-                transitionDuration: const Duration(milliseconds: 400),
-                pageBuilder: (context, anim1, anim2) => const SizedBox.shrink(),
-                transitionBuilder: (context, anim1, anim2, child) {
-                  final curvedValue = Curves.easeOutCubic.transform(anim1.value);
-                  return Transform.translate(
-                    offset: Offset(0, -400 + curvedValue * 400),
-                    child: Opacity(
-                      opacity: anim1.value,
-                      child: _AdvancedSearchModal(
-                        initialFilters: _currentFilters,
-                      ),
-                    ),
-                  );
-                },
-              );
-              if (result != null) {
-                setState(() {
-                  _currentFilters = result;
-                });
-              }
-            },
-          ),
-          Container(
-            color: Colors.white,
-            child: TabBar(
-              controller: _tabController,
-              isScrollable: true,
-              indicator: const UnderlineTabIndicator(
-                borderSide: BorderSide(width: 2.0, color: AppColors.primary),
-                insets: EdgeInsets.zero,
-              ),
-              labelColor: AppColors.primary,
-              unselectedLabelColor: Colors.grey,
-              tabs: List.generate(_tabs.length, (index) {
-                final tab = _tabs[index];
-                return Tab(
-                  icon: Icon(tab.icon),
-                  text: tab.label,
+      body: SafeArea(
+        child: Column(
+          children: [
+            AnimatedSearchBar(
+              onTap: () async {
+               final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                 MaterialPageRoute(
+                   builder: (context) => AdvancedSearchScreen(
+                     properties: _allProperties,
+                     initialFilters: _currentFilters,
+                   ),
+                 ),
                 );
-              }),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                if (_currentFilters.isNotEmpty)
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: _buildFilterChips(_currentFilters),
-                      ),
-                    ),
-                  ),
-                IconButton(
-                  icon: Icon(
-                    Icons.sort,
-                    color: _sortOrder == SortOrder.none ? Colors.grey : AppColors.primary,
-                  ),
-                  tooltip: 'Sort',
-                  onPressed: _showSortOptions,
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder<List<Property>>(
-              future: _propertyService.getProperties(
-                propertyType: _tabs[_tabController.index].type,
-                sortOrder: _sortOrder,
-              ),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Failed to load properties: \\${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No properties found.'));
+                if (result != null) {
+                  setState(() {
+                    _currentFilters = result;
+                  });
                 }
-                final filtered = snapshot.data!;
-                if (filtered.isEmpty) {
-                  return const Center(child: Text('No properties match your filter.'));
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: filtered.length,
-                  itemBuilder: (context, index) {
-                    final property = filtered[index];
-                    return PropertyCard(
-                      property: property,
-                      isFavorite: _favoriteIds.contains(property.id),
-                      onFavoritePressed: () => _toggleFavorite(property.id),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PropertyDetailScreen(property: property),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
               },
             ),
-          ),
-        ],
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                indicator: const UnderlineTabIndicator(
+                  borderSide: BorderSide(width: 2.0, color: AppColors.primary),
+                  insets: EdgeInsets.zero,
+                ),
+                labelColor: AppColors.primary,
+                unselectedLabelColor: Colors.grey,
+                tabs: List.generate(_tabs.length, (index) {
+                  final tab = _tabs[index];
+                  return Tab(
+                    icon: Icon(tab.icon),
+                    text: tab.label,
+                  );
+                }),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  if (_currentFilters.isNotEmpty)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _buildFilterChips(_currentFilters),
+                        ),
+                      ),
+                    ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.sort,
+                      color: _sortOrder == SortOrder.none ? Colors.grey : AppColors.primary,
+                    ),
+                    tooltip: 'Sort',
+                    onPressed: _showSortOptions,
+                  ),
+                ],
+              ),
+            ),
+            _buildPropertyList(),
+          ],
+        ),
       ),
     );
   }
@@ -246,6 +210,65 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       chips.add(_FilterChipText(text: '${range.start.toInt()} - ${range.end.toInt()}'));
     }
     return chips;
+  }
+
+  Widget _buildPropertyList() {
+    if (_isLoading) {
+      return const Expanded(child: Center(child: CircularProgressIndicator()));
+    }
+
+    // Apply filters
+    List<Property> filtered = _allProperties;
+    final selectedTabType = _tabs[_tabController.index].type;
+    if (selectedTabType != null) {
+      filtered = filtered.where((p) => p.propertyType == selectedTabType).toList();
+    }
+
+    // Apply search filters
+    if (_currentFilters['location'] != null && _currentFilters['location'] != 'Any') {
+      filtered = filtered.where((p) => p.location == _currentFilters['location']).toList();
+    }
+    if (_currentFilters['type'] != null && _currentFilters['type'] != 'Any' && _currentFilters['type'] != null) {
+      filtered = filtered.where((p) => p.propertyType == _currentFilters['type']).toList();
+    }
+    if (_currentFilters['priceRange'] != null) {
+      final range = _currentFilters['priceRange'] as RangeValues;
+      filtered = filtered.where((p) => p.price >= range.start && p.price <= range.end).toList();
+    }
+
+    // Apply sorting
+    if (_sortOrder == SortOrder.lowToHigh) {
+      filtered.sort((a, b) => a.price.compareTo(b.price));
+    } else if (_sortOrder == SortOrder.highToLow) {
+      filtered.sort((a, b) => b.price.compareTo(a.price));
+    }
+
+    if (filtered.isEmpty) {
+      return const Expanded(child: Center(child: Text('No properties found.')));
+    }
+
+    return Expanded(
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final property = filtered[index];
+          return PropertyCard(
+            property: property,
+            isFavorite: _favoriteIds.contains(property.id),
+            onFavoritePressed: () => _toggleFavorite(property.id),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PropertyDetailScreen(property: property),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -294,207 +317,6 @@ class AnimatedSearchBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AdvancedSearchModal extends StatefulWidget {
-  final Map<String, dynamic>? initialFilters;
-  const _AdvancedSearchModal({this.initialFilters});
-
-  @override
-  State<_AdvancedSearchModal> createState() => _AdvancedSearchModalState();
-}
-
-class _AdvancedSearchModalState extends State<_AdvancedSearchModal> {
-  String? _selectedLocation;
-  String? _selectedType;
-  RangeValues _priceRange = const RangeValues(100000, 1000000);
-
-  final List<String> _locations = [
-    'Any', 'Malibu', 'Downtown LA', 'Pasadena', 'West Hollywood'
-  ];
-  final List<IconData> _locationIcons = [
-    Icons.public, Icons.beach_access, Icons.location_city, Icons.park, Icons.nightlife
-  ];
-  final List<String> _types = [
-    'Any', 'Apartment', 'Villa', 'House', 'Condo', 'Studio'
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.initialFilters != null) {
-      _selectedLocation = widget.initialFilters!['location'] as String?;
-      _selectedType = widget.initialFilters!['type'] as String?;
-      _priceRange = widget.initialFilters!['priceRange'] as RangeValues? ?? _priceRange;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.98,
-            constraints: const BoxConstraints(maxWidth: 500),
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 24),
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  _SectionCard(
-                    title: 'Location',
-                    child: Wrap(
-                      spacing: 8,
-                      children: List.generate(_locations.length, (i) => ChoiceChip(
-                        label: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(_locationIcons[i], size: 18, color: Colors.blue),
-                            const SizedBox(width: 4),
-                            Text(_locations[i]),
-                          ],
-                        ),
-                        selected: _selectedLocation == _locations[i],
-                        onSelected: (_) => setState(() => _selectedLocation = _locations[i]),
-                      )),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Property Type',
-                    child: Wrap(
-                      spacing: 8,
-                      children: _types.map((type) => ChoiceChip(
-                        label: Text(type),
-                        selected: _selectedType == type,
-                        onSelected: (_) => setState(() => _selectedType = type),
-                      )).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _SectionCard(
-                    title: 'Price Range',
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RangeSlider(
-                          values: _priceRange,
-                          min: 0,
-                          max: 2000000,
-                          divisions: 40,
-                          labels: RangeLabels(
-                            '\$${_priceRange.start.toInt()}',
-                            '\$${_priceRange.end.toInt()}',
-                          ),
-                          onChanged: (values) => setState(() => _priceRange = values),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Min: \$${_priceRange.start.toInt()}'),
-                            Text('Max: \$${_priceRange.end.toInt()}'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedLocation = _locations[0];
-                              _selectedType = null;
-                              _priceRange = const RangeValues(100000, 1000000);
-                            });
-                          },
-                          icon: const Icon(Icons.clear),
-                          label: const Text('Clear All'),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).pop({
-                              'location': _selectedLocation,
-                              'type': _selectedType,
-                              'priceRange': _priceRange,
-                            });
-                          },
-                          icon: const Icon(Icons.search),
-                          label: const Text('Search'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _SectionCard({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: Colors.grey[50],
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-            const SizedBox(height: 10),
-            child,
           ],
         ),
       ),
