@@ -2,13 +2,70 @@ import 'package:flutter/material.dart';
 import '../../widgets/property_card.dart';
 import '../../services/property_service.dart';
 import '../../screens/properties/property_detail_screen.dart';
+import '../../models/property.dart';
 
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
   @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  final PropertyService propertyService = PropertyService();
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+  List<Property> _favorites = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final favorites = await propertyService.getFavoriteProperties();
+      setState(() {
+        _favorites = favorites;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _removeFavorite(int index) async {
+    final property = _favorites[index];
+    await propertyService.toggleFavorite(property.id);
+    setState(() {
+      _favorites.removeAt(index);
+      _listKey.currentState?.removeItem(
+        index,
+        (context, animation) => SizeTransition(
+          sizeFactor: animation,
+          child: PropertyCard(
+            property: property,
+            isFavorite: true,
+            onFavoritePressed: null,
+            onTap: null,
+          ),
+        ),
+        duration: const Duration(milliseconds: 400),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final propertyService = PropertyService();
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -22,46 +79,41 @@ class FavoritesScreen extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: FutureBuilder(
-                future: propertyService.getFavoriteProperties(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Failed to load favorites: \\${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(
-                      child: Text(
-                        'No favorite properties yet.',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                    );
-                  }
-                  final favorites = snapshot.data!;
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    itemCount: favorites.length,
-                    itemBuilder: (context, index) {
-                      return PropertyCard(
-                        property: favorites[index],
-                        isFavorite: true,
-                        onFavoritePressed: () async {
-                          await propertyService.toggleFavorite(favorites[index].id);
-                          (context as Element).markNeedsBuild();
-                        },
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PropertyDetailScreen(property: favorites[index]),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _error != null
+                      ? Center(child: Text('Failed to load favorites: \\$_error'))
+                      : _favorites.isEmpty
+                          ? const Center(
+                              child: Text(
+                                'No favorite properties yet.',
+                                style: TextStyle(fontSize: 18, color: Colors.grey),
+                              ),
+                            )
+                          : AnimatedList(
+                              key: _listKey,
+                              initialItemCount: _favorites.length,
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              itemBuilder: (context, index, animation) {
+                                final property = _favorites[index];
+                                return SizeTransition(
+                                  sizeFactor: animation,
+                                  child: PropertyCard(
+                                    property: property,
+                                    isFavorite: true,
+                                    onFavoritePressed: () => _removeFavorite(index),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PropertyDetailScreen(property: property),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
                             ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                },
-              ),
             ),
           ],
         ),

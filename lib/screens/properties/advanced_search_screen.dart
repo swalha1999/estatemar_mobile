@@ -114,22 +114,38 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           selectedColor: Colors.blue,
           labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          showCheckmark: false,
         );
       }),
     );
   }
   
   Widget _buildPropertyTypeSelector() {
+    final List<IconData> propertyTypeIcons = [
+      Icons.house,         // house
+      Icons.apartment,     // apartment
+      Icons.location_city, // condo
+      Icons.home_work,     // townhouse
+      Icons.villa,         // villa
+      Icons.meeting_room,  // studio
+    ];
     return Wrap(
       spacing: 12,
       runSpacing: 12,
-      children: PropertyType.values.map((type) {
+      children: List.generate(PropertyType.values.length, (i) {
+        final type = PropertyType.values[i];
+        final isSelected = _selectedType == type;
         return ChoiceChip(
+          avatar: Icon(propertyTypeIcons[i], size: 20, color: isSelected ? Colors.white : Colors.blue),
           label: Text(type.name[0].toUpperCase() + type.name.substring(1)),
-          selected: _selectedType == type,
+          selected: isSelected,
           onSelected: (_) => setState(() => _selectedType = type),
+          selectedColor: Colors.blue,
+          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          showCheckmark: false,
         );
-      }).toList(),
+      }),
     );
   }
 
