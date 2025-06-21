@@ -265,13 +265,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             property: property,
             isFavorite: _favoriteIds.contains(property.id),
             onFavoritePressed: () => _toggleFavorite(property.id),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => PropertyDetailScreen(property: property),
                 ),
               );
+              await _fetchFavoriteIds();
             },
           );
         },
