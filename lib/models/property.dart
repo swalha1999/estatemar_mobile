@@ -286,29 +286,23 @@ class Property {
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      id: json['id'] as String,
-      title: json['title'] as String,
-      description: json['description'] as String,
-      price: (json['price'] as num).toDouble(),
-      location: json['location'] as String,
-      address: json['address'] as String,
-      bedrooms: json['bedrooms'] as int,
-      bathrooms: json['bathrooms'] as int,
-      area: (json['area'] as num).toDouble(),
-      imageUrls: List<String>.from(json['imageUrls']),
-      propertyType: PropertyType.values.firstWhere(
-        (e) => e.name == json['propertyType'],
-        orElse: () => PropertyType.house,
-      ),
-      listingType: ListingType.values.firstWhere(
-        (e) => e.name == json['listingType'],
-        orElse: () => ListingType.sale,
-      ),
-      isAvailable: json['isAvailable'] as bool,
-      isFeatured: json['isFeatured'] as bool,
+      id: json['id']?.toString() ?? '',
+      title: json['title']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      location: json['location']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      bedrooms: json['bedrooms'] as int? ?? 0,
+      bathrooms: json['bathrooms'] as int? ?? 0,
+      area: (json['area'] as num?)?.toDouble() ?? 0.0,
+      imageUrls: List<String>.from(json['imageUrls'] ?? []),
+      propertyType: _parsePropertyType(json['propertyType']?.toString() ?? 'house'),
+      listingType: _parseListingType(json['listingType']?.toString() ?? 'sale'),
+      isAvailable: json['isAvailable'] as bool? ?? true,
+      isFeatured: json['isFeatured'] as bool? ?? false,
       amenities: List<String>.from(json['amenities'] ?? []),
-      latitude: json['latitude'] as double?,
-      longitude: json['longitude'] as double?,
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
       yearBuilt: json['yearBuilt'] as int?,
       parkingSpaces: json['parkingSpaces'] as int?,
       agentId: json['agentId'] as String?,
@@ -322,9 +316,39 @@ class Property {
           ? DateTime.parse(json['updatedAt'])
           : null,
       virtualTourUrl: json['virtualTourUrl'] as String?,
-      monthlyRent: json['monthlyRent'] as double?,
-      annualAppreciationRate: json['annualAppreciationRate'] as double?,
+      monthlyRent: json['monthlyRent'] != null ? (json['monthlyRent'] as num).toDouble() : null,
+      annualAppreciationRate: json['annualAppreciationRate'] != null ? (json['annualAppreciationRate'] as num).toDouble() : null,
     );
+  }
+
+  static PropertyType _parsePropertyType(String type) {
+    switch (type.toLowerCase()) {
+      case 'house':
+        return PropertyType.house;
+      case 'apartment':
+        return PropertyType.apartment;
+      case 'condo':
+        return PropertyType.condo;
+      case 'townhouse':
+        return PropertyType.townhouse;
+      case 'villa':
+        return PropertyType.villa;
+      case 'studio':
+        return PropertyType.studio;
+      default:
+        return PropertyType.house;
+    }
+  }
+
+  static ListingType _parseListingType(String type) {
+    switch (type.toLowerCase()) {
+      case 'sale':
+        return ListingType.sale;
+      case 'rent':
+        return ListingType.rent;
+      default:
+        return ListingType.sale;
+    }
   }
 
   @override
