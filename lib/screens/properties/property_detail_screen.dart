@@ -157,7 +157,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             const SizedBox(height: 24),
           ],
           // Payment Plans Section
-          PaymentPlanWidget(property: widget.property),
+          Text('Payment Plan', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            child: PaymentPlanWidget(property: widget.property),
+          ),
           const SizedBox(height: 24),
 
         ],

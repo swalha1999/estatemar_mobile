@@ -10,215 +10,232 @@ class PaymentPlanWidget extends StatelessWidget {
 
   final Property property;
 
-  @override
+    @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return Container(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          
+          // Property Price
+          Row(
+            children: [
+              Icon(
+                Icons.home,
+                color: Colors.blue[700],
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Property Price',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      property.formattedPrice,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.blue[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          
+          // Payment Details
+          Row(
+            children: [
+              Icon(
+                Icons.credit_card,
+                color: Colors.blue[700],
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Flexible Financing',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      '20% down payment required',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          
+          // Payment Breakdown
+          Row(
+            children: [
+              Expanded(
+                child: _buildPaymentDetail(
+                  'Down Payment',
+                  _calculateDownPayment(0.20),
+                  Colors.blue[700]!,
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: _buildPaymentDetail(
+                  'Monthly Payment',
+                  _calculateMonthlyPayment(0.20, 20),
+                  Colors.blue[700]!,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          
+          // Payment Timeline
+          Row(
+            children: [
+              Icon(
+                Icons.schedule,
+                color: Colors.blue[700],
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Payment Timeline',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'Time to recover full price',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          
+          // Timeline Details
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildTimelineDetail('Monthly Payment', _calculateMonthlyPayment(0.20, 20)),
+              _buildTimelineDetail('Payment Period', '20 years'),
+              _buildTimelineDetail('Total Payments', _calculateTotalPayments(0.20, 20)),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.withOpacity(0.2)),
+            ),
+            child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.payment,
-                    color: Colors.blue[700],
-                    size: 24,
-                  ),
+                Icon(
+                  Icons.info_outline,
+                  color: Colors.blue[700],
+                  size: 20,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Payment Plans',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Choose your preferred payment option',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Contact us for personalized financing options and current rates.',
+                    style: TextStyle(
+                      color: Colors.blue[700],
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            _buildPaymentOption(
-              context,
-              title: 'Cash Payment',
-              subtitle: 'Full payment upfront',
-              amount: property.formattedPrice,
-              icon: Icons.attach_money,
-              color: Colors.green,
-              isRecommended: false,
-            ),
-            const SizedBox(height: 16),
-            _buildPaymentOption(
-              context,
-              title: '20% Down Payment',
-              subtitle: '80% financed over 20 years',
-              amount: _calculateDownPayment(0.20),
-              icon: Icons.credit_card,
-              color: Colors.blue,
-              isRecommended: true,
-              monthlyPayment: _calculateMonthlyPayment(0.20, 20),
-            ),
-            const SizedBox(height: 16),
-            _buildPaymentOption(
-              context,
-              title: '30% Down Payment',
-              subtitle: '70% financed over 15 years',
-              amount: _calculateDownPayment(0.30),
-              icon: Icons.account_balance,
-              color: Colors.orange,
-              isRecommended: false,
-              monthlyPayment: _calculateMonthlyPayment(0.30, 15),
-            ),
-            const SizedBox(height: 16),
-            _buildPaymentOption(
-              context,
-              title: '50% Down Payment',
-              subtitle: '50% financed over 10 years',
-              amount: _calculateDownPayment(0.50),
-              icon: Icons.savings,
-              color: Colors.purple,
-              isRecommended: false,
-              monthlyPayment: _calculateMonthlyPayment(0.50, 10),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Colors.blue[700],
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Interest rates and terms may vary. Contact us for personalized financing options.',
-                      style: TextStyle(
-                        color: Colors.blue[700],
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildPaymentOption(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required String amount,
-    required IconData icon,
-    required Color color,
-    required bool isRecommended,
-    String? monthlyPayment,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      constraints: const BoxConstraints(minHeight: 80),
-      decoration: BoxDecoration(
-        color: isRecommended ? color.withOpacity(0.05) : Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isRecommended ? color.withOpacity(0.3) : Colors.grey[200]!,
-          width: isRecommended ? 2 : 1,
+  Widget _buildPaymentDetail(String label, String amount, Color color) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20,
-            ),
+        const SizedBox(height: 4),
+        Text(
+          amount,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: color,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
-                ),
-                if (monthlyPayment != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Monthly: $monthlyPayment',
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimelineDetail(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: color,
-            ),
-            textAlign: TextAlign.end,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 12,
+            color: Colors.blue[700],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -232,16 +249,34 @@ class PaymentPlanWidget extends StatelessWidget {
     return '\$${downPayment.toStringAsFixed(0)}';
   }
 
-  String _calculateMonthlyPayment(double downPaymentPercentage, int years) {
+  String _calculateTotalPayments(double downPaymentPercentage, int years) {
+    final downPayment = property.price * downPaymentPercentage;
+    final monthlyPayment = _calculateMonthlyPaymentValue(downPaymentPercentage, years);
+    final totalMonthlyPayments = monthlyPayment * years * 12;
+    final totalAmount = downPayment + totalMonthlyPayments;
+    
+    if (totalAmount >= 1000000) {
+      return '\$${(totalAmount / 1000000).toStringAsFixed(1)}M';
+    } else if (totalAmount >= 1000) {
+      return '\$${(totalAmount / 1000).toStringAsFixed(0)}K';
+    }
+    return '\$${totalAmount.toStringAsFixed(0)}';
+  }
+
+  double _calculateMonthlyPaymentValue(double downPaymentPercentage, int years) {
     final loanAmount = property.price * (1 - downPaymentPercentage);
     final monthlyRate = 0.045 / 12; // 4.5% annual rate
     final numberOfPayments = years * 12;
     
-    if (numberOfPayments == 0) return '\$0';
+    if (numberOfPayments == 0) return 0;
     
-    final monthlyPayment = loanAmount * 
+    return loanAmount * 
         (monthlyRate * pow(1 + monthlyRate, numberOfPayments)) / 
         (pow(1 + monthlyRate, numberOfPayments) - 1);
+  }
+
+  String _calculateMonthlyPayment(double downPaymentPercentage, int years) {
+    final monthlyPayment = _calculateMonthlyPaymentValue(downPaymentPercentage, years);
     
     if (monthlyPayment >= 1000) {
       return '\$${(monthlyPayment / 1000).toStringAsFixed(0)}K';
