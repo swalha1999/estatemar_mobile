@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,6 +7,7 @@ import '../../models/property.dart';
 import '../../widgets/property_3d_viewer.dart';
 import '../../widgets/roi_display_widget.dart';
 import '../../widgets/payment_plan_widget.dart';
+import '../../widgets/safe_image.dart';
 import '../../services/property_service.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
@@ -322,6 +324,7 @@ class _PropertyLocationMap extends StatelessWidget {
                 TileLayer(
                   urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                   subdomains: const ['a', 'b', 'c', 'd'],
+                  retinaMode: RetinaMode.isHighDensity(context),
                 ),
                 MarkerLayer(
                   markers: [
@@ -399,20 +402,13 @@ class _PropertyImageGalleryState extends State<_PropertyImageGallery> {
             itemBuilder: (context, index) {
               return Container(
                 margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  color: Colors.grey[200],
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  widget.imageUrls[index],
-                  fit: BoxFit.cover,
+                child: SafeImage(
+                  imageUrl: widget.imageUrls[index],
                   width: double.infinity,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return Center(child: CircularProgressIndicator(value: progress.expectedTotalBytes != null ? progress.cumulativeBytesLoaded / (progress.expectedTotalBytes ?? 1) : null));
-                  },
-                  errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.broken_image, size: 48, color: Colors.grey)),
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                  borderRadius: BorderRadius.circular(16),
+                  showRetry: true,
                 ),
               );
             },

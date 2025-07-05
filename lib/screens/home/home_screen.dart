@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import '../../widgets/property_card.dart';
+import '../../widgets/animated_search_header.dart';
 import '../../models/property.dart';
 import '../../services/property_service.dart';
 import 'package:estatemar_mobile/screens/properties/advanced_search_screen.dart';
@@ -17,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
+  late ScrollController _scrollController;
   SortOrder _sortOrder = SortOrder.none;
   final PropertyService _propertyService = PropertyService();
   final Set<String> _favoriteIds = {};
@@ -85,6 +87,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     _tabController.addListener(() {
       setState(() {});
     });
+    _scrollController = ScrollController();
     _fetchInitialData();
   }
 
@@ -92,8 +95,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   void dispose() {
     _searchController.dispose();
     _tabController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
+
+
 
   Future<void> _fetchFavoriteIds() async {
     final ids = await _propertyService.favoriteService.getFavoriteIds();
@@ -126,18 +132,20 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Column(
           children: [
-            AnimatedSearchBar(
-              onTap: () async {
-               final result = await Navigator.of(context).push<Map<String, dynamic>>(
-                 MaterialPageRoute(
-                   builder: (context) => AdvancedSearchScreen(
-                     properties: _allProperties,
-                     initialFilters: _currentFilters,
-                   ),
-                 ),
+            // Animated search header
+            AnimatedSearchHeader(
+              onSearchTap: () async {
+                final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                  MaterialPageRoute(
+                    builder: (context) => AdvancedSearchScreen(
+                      properties: _allProperties,
+                      initialFilters: _currentFilters,
+                    ),
+                  ),
                 );
                 if (result != null) {
                   setState(() {
@@ -145,55 +153,81 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                   });
                 }
               },
+              onFilterTap: () async {
+                final result = await Navigator.of(context).push<Map<String, dynamic>>(
+                  MaterialPageRoute(
+                    builder: (context) => AdvancedSearchScreen(
+                      properties: _allProperties,
+                      initialFilters: _currentFilters,
+                    ),
+                  ),
+                );
+                if (result != null) {
+                  setState(() {
+                    _currentFilters = result;
+                  });
+                }
+              },
+              onSortTap: _showSortOptions,
+              hasFilters: _currentFilters.isNotEmpty,
+              sortActive: _sortOrder != SortOrder.none,
             ),
+            // Tabs
             Container(
-              color: Colors.white,
-              child: TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                indicator: const UnderlineTabIndicator(
-                  borderSide: BorderSide(width: 2.0, color: AppColors.primary),
-                  insets: EdgeInsets.zero,
-                ),
-                labelColor: AppColors.primary,
-                unselectedLabelColor: Colors.grey,
-                tabs: List.generate(_tabs.length, (index) {
-                  final tab = _tabs[index];
-                  return Tab(
-                    icon: Icon(tab.icon, size: 20),
-                    child: Text(
-                      tab.label,
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (_currentFilters.isNotEmpty)
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: _buildFilterChips(_currentFilters),
-                        ),
-                      ),
-                    ),
-                  IconButton(
-                    icon: Icon(
-                      Icons.sort,
-                      color: _sortOrder == SortOrder.none ? Colors.grey : AppColors.primary,
-                    ),
-                    tooltip: 'Sort',
-                    onPressed: _showSortOptions,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 2,
+                    offset: const Offset(0, 1),
                   ),
                 ],
               ),
+              child: Column(
+                children: [
+                  // Tab bar
+                  Container(
+                    height: 56,
+                    child: TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicator: UnderlineTabIndicator(
+                        borderSide: BorderSide(
+                          width: 3.0,
+                          color: AppColors.primary,
+                        ),
+                        insets: EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      labelColor: AppColors.primary,
+                      unselectedLabelColor: Colors.grey[600],
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+                      tabs: List.generate(_tabs.length, (index) {
+                        final tab = _tabs[index];
+                        return Tab(
+                          icon: Icon(tab.icon, size: 20),
+                          child: Text(
+                            tab.label,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  // Filter chips (if any)
+                  if (_currentFilters.isNotEmpty)
+                    Container(
+                      height: 44,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: _buildFilterChips(_currentFilters),
+                      ),
+                    ),
+                ],
+              ),
             ),
+            // Property list
             _buildPropertyList(),
           ],
         ),
@@ -206,16 +240,37 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final format = NumberFormat.simpleCurrency(decimalDigits: 0);
 
     if (filters['location'] != null && filters['location'] != 'Any') {
-      chips.add(_FilterChipText(text: filters['location']));
+      chips.add(_FilterChip(
+        text: filters['location'],
+        onDelete: () {
+          setState(() {
+            _currentFilters.remove('location');
+          });
+        },
+      ));
     }
     if (filters['type'] != null && filters['type'] != 'Any') {
-      chips.add(_FilterChipText(text: (filters['type'] as PropertyType).name.capitalize()));
+      chips.add(_FilterChip(
+        text: (filters['type'] as PropertyType).name.capitalize(),
+        onDelete: () {
+          setState(() {
+            _currentFilters.remove('type');
+          });
+        },
+      ));
     }
     if (filters['priceRange'] != null) {
       final range = filters['priceRange'] as RangeValues;
       final start = format.format(range.start);
       final end = format.format(range.end);
-      chips.add(_FilterChipText(text: '$start - $end'));
+      chips.add(_FilterChip(
+        text: '$start - $end',
+        onDelete: () {
+          setState(() {
+            _currentFilters.remove('priceRange');
+          });
+        },
+      ));
     }
     return chips;
   }
@@ -257,7 +312,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
 
     return Expanded(
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        controller: _scrollController,
+        padding: const EdgeInsets.only(top: 8, bottom: 80),
         itemCount: filtered.length,
         itemBuilder: (context, index) {
           final property = filtered[index];
@@ -292,67 +348,34 @@ class _PropertyTypeTab {
   const _PropertyTypeTab({required this.label, required this.icon, required this.type});
 }
 
-class AnimatedSearchBar extends StatelessWidget {
-  final VoidCallback onTap;
-  const AnimatedSearchBar({super.key, required this.onTap});
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.08),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Icon(Icons.search, color: Colors.grey),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  'Search properties...',
-                  style: TextStyle(color: Colors.grey[700], fontSize: 16),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-class _FilterChipText extends StatelessWidget {
+class _FilterChip extends StatelessWidget {
   final String text;
-  const _FilterChipText({required this.text});
+  final VoidCallback onDelete;
+  const _FilterChip({required this.text, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(right: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600, fontSize: 14),
+      child: Chip(
+        label: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        deleteIcon: const Icon(Icons.close, size: 16),
+        onDeleted: onDelete,
+        backgroundColor: AppColors.primary.withOpacity(0.08),
+        labelStyle: TextStyle(color: AppColors.primary),
+        deleteIconColor: AppColors.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+        ),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/property.dart';
 import '../theme/colors.dart';
 import 'roi_display_widget.dart';
+import 'safe_image.dart';
 
 class PropertyCard extends StatefulWidget {
   const PropertyCard({
@@ -54,11 +55,13 @@ class _PropertyCardState extends State<PropertyCard> {
                                   setState(() => _currentImage = index);
                                 },
                                 itemBuilder: (context, index) {
-                                  return Image.network(
-                                    images[index],
+                                  return SafeImage(
+                                    imageUrl: images[index],
                                     height: 180,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
+                                    borderRadius: BorderRadius.zero,
+                                    showRetry: false,
                                   );
                                 },
                               ),
