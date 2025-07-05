@@ -27,7 +27,7 @@ class Property {
     this.updatedAt,
     this.virtualTourUrl,
     this.monthlyRent,
-    this.annualExpenses,
+    this.annualAppreciationRate,
   });
 
   final String id;
@@ -57,7 +57,7 @@ class Property {
   final DateTime? updatedAt;
   final String? virtualTourUrl;
   final double? monthlyRent;
-  final double? annualExpenses;
+  final double? annualAppreciationRate;
 
   String get formattedPrice {
     if (price >= 1000000) {
@@ -91,8 +91,7 @@ class Property {
 
   double? get annualNetIncome {
     if (annualRent == null) return null;
-    final expenses = annualExpenses ?? 0;
-    return annualRent! - expenses;
+    return annualRent!;
   }
 
   String get formattedAnnualNetIncome {
@@ -108,13 +107,60 @@ class Property {
 
   double? get roiPercentage {
     if (annualNetIncome == null || price <= 0) return null;
+    
+    // Calculate cash-on-cash ROI (rental income only)
+    final cashOnCashRoi = (annualNetIncome! / price) * 100;
+    
+    // Add appreciation if available
+    if (annualAppreciationRate != null) {
+      final appreciationValue = price * (annualAppreciationRate! / 100);
+      final totalReturn = annualNetIncome! + appreciationValue;
+      return (totalReturn / price) * 100;
+    }
+    
+    return cashOnCashRoi;
+  }
+
+  double? get cashOnCashRoi {
+    if (annualNetIncome == null || price <= 0) return null;
     return (annualNetIncome! / price) * 100;
+  }
+
+  double? get appreciationRoi {
+    if (annualAppreciationRate == null || price <= 0) return null;
+    return annualAppreciationRate;
   }
 
   String get formattedRoiPercentage {
     final roi = roiPercentage;
     if (roi == null) return 'N/A';
-    return '${roi.toStringAsFixed(1)}% ROI';
+    return '${roi.toStringAsFixed(1)}%';
+  }
+
+  String get formattedCashOnCashRoi {
+    final roi = cashOnCashRoi;
+    if (roi == null) return 'N/A';
+    return '${roi.toStringAsFixed(1)}%';
+  }
+
+  String get formattedAppreciationRoi {
+    final roi = appreciationRoi;
+    if (roi == null) return 'N/A';
+    return '${roi.toStringAsFixed(1)}%';
+  }
+
+  String get formattedTotalRoi {
+    final totalRoi = roiPercentage;
+    final cashRoi = cashOnCashRoi;
+    final appRoi = appreciationRoi;
+    
+    if (totalRoi == null) return 'N/A';
+    
+    if (appRoi != null && cashRoi != null) {
+      return '${totalRoi.toStringAsFixed(1)}% (${cashRoi.toStringAsFixed(1)}% + ${appRoi.toStringAsFixed(1)}%)';
+    }
+    
+    return '${totalRoi.toStringAsFixed(1)}%';
   }
 
   String get propertyTypeString {
@@ -171,7 +217,7 @@ class Property {
     DateTime? updatedAt,
     String? virtualTourUrl,
     double? monthlyRent,
-    double? annualExpenses,
+    double? annualAppreciationRate,
   }) {
     return Property(
       id: id ?? this.id,
@@ -201,7 +247,7 @@ class Property {
       updatedAt: updatedAt ?? this.updatedAt,
       virtualTourUrl: virtualTourUrl ?? this.virtualTourUrl,
       monthlyRent: monthlyRent ?? this.monthlyRent,
-      annualExpenses: annualExpenses ?? this.annualExpenses,
+      annualAppreciationRate: annualAppreciationRate ?? this.annualAppreciationRate,
     );
   }
 
@@ -234,7 +280,7 @@ class Property {
       'updatedAt': updatedAt?.toIso8601String(),
       'virtualTourUrl': virtualTourUrl,
       'monthlyRent': monthlyRent,
-      'annualExpenses': annualExpenses,
+      'annualAppreciationRate': annualAppreciationRate,
     };
   }
 
@@ -277,7 +323,7 @@ class Property {
           : null,
       virtualTourUrl: json['virtualTourUrl'] as String?,
       monthlyRent: json['monthlyRent'] as double?,
-      annualExpenses: json['annualExpenses'] as double?,
+      annualAppreciationRate: json['annualAppreciationRate'] as double?,
     );
   }
 

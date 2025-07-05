@@ -130,7 +130,7 @@ class RoiDisplayWidget extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            '${roi.toStringAsFixed(1)}%',
+            property.formattedTotalRoi,
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -194,7 +194,7 @@ class RoiDisplayWidget extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${roi.toStringAsFixed(1)}%',
+                  property.formattedTotalRoi,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -207,7 +207,10 @@ class RoiDisplayWidget extends StatelessWidget {
           if (showDetails) ...[
             const SizedBox(height: 8),
             _buildDetailRow('Monthly Rent', property.formattedMonthlyRent),
-            _buildDetailRow('Annual Expenses', RoiCalculator.formatCurrency(property.annualExpenses, suffix: '/yr')),
+            if (property.appreciationRoi != null)
+              _buildDetailRow('Appreciation', '${property.formattedAppreciationRoi}/yr'),
+            _buildDetailRow('Cash ROI', property.formattedCashOnCashRoi),
+            _buildDetailRow('Total ROI', property.formattedTotalRoi),
             _buildDetailRow('ROI Rating', roiDescription),
           ],
         ],

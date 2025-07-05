@@ -3,32 +3,26 @@ class RoiCalculator {
   static double? calculateRoiPercentage({
     required double propertyPrice,
     required double monthlyRent,
-    double annualExpenses = 0,
   }) {
     if (propertyPrice <= 0) return null;
     
     final annualRent = monthlyRent * 12;
-    final annualNetIncome = annualRent - annualExpenses;
     
-    if (annualNetIncome <= 0) return null;
-    
-    return (annualNetIncome / propertyPrice) * 100;
+    return (annualRent / propertyPrice) * 100;
   }
 
   /// Calculate annual net income
   static double calculateAnnualNetIncome({
     required double monthlyRent,
-    double annualExpenses = 0,
   }) {
-    return (monthlyRent * 12) - annualExpenses;
+    return monthlyRent * 12;
   }
 
   /// Calculate monthly net income
   static double calculateMonthlyNetIncome({
     required double monthlyRent,
-    double annualExpenses = 0,
   }) {
-    return monthlyRent - (annualExpenses / 12);
+    return monthlyRent;
   }
 
   /// Format ROI percentage with appropriate precision
@@ -85,5 +79,43 @@ class RoiCalculator {
   static double estimateMonthlyRent(double propertyPrice) {
     // Rough estimation: 0.5-1% of property value per month
     return propertyPrice * 0.007; // 0.7% of property value
+  }
+
+  /// Calculate total ROI including appreciation
+  static double? calculateTotalRoi({
+    required double propertyPrice,
+    required double monthlyRent,
+    double? annualAppreciationRate,
+  }) {
+    final cashRoi = calculateRoiPercentage(
+      propertyPrice: propertyPrice,
+      monthlyRent: monthlyRent,
+    );
+    
+    if (cashRoi == null) return null;
+    
+    if (annualAppreciationRate != null) {
+      return cashRoi + annualAppreciationRate;
+    }
+    
+    return cashRoi;
+  }
+
+  /// Calculate annual appreciation value
+  static double calculateAppreciationValue({
+    required double propertyPrice,
+    required double annualAppreciationRate,
+  }) {
+    return propertyPrice * (annualAppreciationRate / 100);
+  }
+
+  /// Get appreciation description based on rate
+  static String getAppreciationDescription(double? appreciationRate) {
+    if (appreciationRate == null) return 'No data';
+    
+    if (appreciationRate >= 6.0) return 'High appreciation';
+    if (appreciationRate >= 4.0) return 'Good appreciation';
+    if (appreciationRate >= 2.0) return 'Moderate appreciation';
+    return 'Low appreciation';
   }
 } 

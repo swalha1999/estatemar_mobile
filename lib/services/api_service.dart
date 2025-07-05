@@ -35,7 +35,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 8500,
-      annualExpenses: 25000,
+      annualAppreciationRate: 4.5,
     ),
     Property(
       id: '2',
@@ -67,7 +67,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(hours: 12)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 5200,
-      annualExpenses: 18000,
+      annualAppreciationRate: 3.8,
     ),
     Property(
       id: '3',
@@ -99,7 +99,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(days: 2)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 3800,
-      annualExpenses: 15000,
+      annualAppreciationRate: 4.2,
     ),
     Property(
       id: '4',
@@ -130,7 +130,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(hours: 6)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 2800,
-      annualExpenses: 8000,
+      annualAppreciationRate: 5.1,
     ),
     Property(
       id: '5',
@@ -162,7 +162,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 4500,
-      annualExpenses: 12000,
+      annualAppreciationRate: 4.8,
     ),
     Property(
       id: '6',
@@ -194,7 +194,7 @@ class ApiService {
       updatedAt: DateTime.now().subtract(const Duration(days: 3)),
       virtualTourUrl: 'https://tourin3d.com',
       monthlyRent: 6200,
-      annualExpenses: 20000,
+      annualAppreciationRate: 3.5,
     ),
   ];
 
