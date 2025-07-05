@@ -26,6 +26,8 @@ class Property {
     this.createdAt,
     this.updatedAt,
     this.virtualTourUrl,
+    this.monthlyRent,
+    this.annualExpenses,
   });
 
   final String id;
@@ -54,6 +56,8 @@ class Property {
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String? virtualTourUrl;
+  final double? monthlyRent;
+  final double? annualExpenses;
 
   String get formattedPrice {
     if (price >= 1000000) {
@@ -62,6 +66,55 @@ class Property {
       return '\$${(price / 1000).toStringAsFixed(0)}K';
     }
     return '\$${price.toStringAsFixed(0)}';
+  }
+
+  String get formattedMonthlyRent {
+    if (monthlyRent == null) return 'N/A';
+    if (monthlyRent! >= 1000) {
+      return '\$${(monthlyRent! / 1000).toStringAsFixed(0)}K/mo';
+    }
+    return '\$${monthlyRent!.toStringAsFixed(0)}/mo';
+  }
+
+  String get formattedAnnualRent {
+    if (monthlyRent == null) return 'N/A';
+    final annualRent = monthlyRent! * 12;
+    if (annualRent >= 1000000) {
+      return '\$${(annualRent / 1000000).toStringAsFixed(1)}M/yr';
+    } else if (annualRent >= 1000) {
+      return '\$${(annualRent / 1000).toStringAsFixed(0)}K/yr';
+    }
+    return '\$${annualRent.toStringAsFixed(0)}/yr';
+  }
+
+  double? get annualRent => monthlyRent != null ? monthlyRent! * 12 : null;
+
+  double? get annualNetIncome {
+    if (annualRent == null) return null;
+    final expenses = annualExpenses ?? 0;
+    return annualRent! - expenses;
+  }
+
+  String get formattedAnnualNetIncome {
+    final netIncome = annualNetIncome;
+    if (netIncome == null) return 'N/A';
+    if (netIncome >= 1000000) {
+      return '\$${(netIncome / 1000000).toStringAsFixed(1)}M/yr';
+    } else if (netIncome >= 1000) {
+      return '\$${(netIncome / 1000).toStringAsFixed(0)}K/yr';
+    }
+    return '\$${netIncome.toStringAsFixed(0)}/yr';
+  }
+
+  double? get roiPercentage {
+    if (annualNetIncome == null || price <= 0) return null;
+    return (annualNetIncome! / price) * 100;
+  }
+
+  String get formattedRoiPercentage {
+    final roi = roiPercentage;
+    if (roi == null) return 'N/A';
+    return '${roi.toStringAsFixed(1)}% ROI';
   }
 
   String get propertyTypeString {
@@ -117,6 +170,8 @@ class Property {
     DateTime? createdAt,
     DateTime? updatedAt,
     String? virtualTourUrl,
+    double? monthlyRent,
+    double? annualExpenses,
   }) {
     return Property(
       id: id ?? this.id,
@@ -145,6 +200,8 @@ class Property {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       virtualTourUrl: virtualTourUrl ?? this.virtualTourUrl,
+      monthlyRent: monthlyRent ?? this.monthlyRent,
+      annualExpenses: annualExpenses ?? this.annualExpenses,
     );
   }
 
@@ -176,6 +233,8 @@ class Property {
       'createdAt': createdAt?.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
       'virtualTourUrl': virtualTourUrl,
+      'monthlyRent': monthlyRent,
+      'annualExpenses': annualExpenses,
     };
   }
 
@@ -217,6 +276,8 @@ class Property {
           ? DateTime.parse(json['updatedAt'])
           : null,
       virtualTourUrl: json['virtualTourUrl'] as String?,
+      monthlyRent: json['monthlyRent'] as double?,
+      annualExpenses: json['annualExpenses'] as double?,
     );
   }
 

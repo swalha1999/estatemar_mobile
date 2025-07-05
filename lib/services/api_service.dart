@@ -34,6 +34,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 5)),
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 8500,
+      annualExpenses: 25000,
     ),
     Property(
       id: '2',
@@ -64,6 +66,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 3)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 12)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 5200,
+      annualExpenses: 18000,
     ),
     Property(
       id: '3',
@@ -94,6 +98,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 7)),
       updatedAt: DateTime.now().subtract(const Duration(days: 2)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 3800,
+      annualExpenses: 15000,
     ),
     Property(
       id: '4',
@@ -123,6 +129,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 1)),
       updatedAt: DateTime.now().subtract(const Duration(hours: 6)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 2800,
+      annualExpenses: 8000,
     ),
     Property(
       id: '5',
@@ -153,6 +161,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 4)),
       updatedAt: DateTime.now().subtract(const Duration(days: 1)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 4500,
+      annualExpenses: 12000,
     ),
     Property(
       id: '6',
@@ -183,6 +193,8 @@ class ApiService {
       createdAt: DateTime.now().subtract(const Duration(days: 10)),
       updatedAt: DateTime.now().subtract(const Duration(days: 3)),
       virtualTourUrl: 'https://tourin3d.com',
+      monthlyRent: 6200,
+      annualExpenses: 20000,
     ),
   ];
 

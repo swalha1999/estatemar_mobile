@@ -6,6 +6,8 @@ enum SortOrder {
   none,
   highToLow,
   lowToHigh,
+  roiHighToLow,
+  roiLowToHigh,
 }
 
 class PropertyService {
@@ -38,12 +40,64 @@ class PropertyService {
       maxBedrooms: maxBedrooms,
       isFeatured: isFeatured,
     );
-    if (sortOrder == SortOrder.highToLow) {
-      properties.sort((a, b) => b.price.compareTo(a.price));
-    } else if (sortOrder == SortOrder.lowToHigh) {
-      properties.sort((a, b) => a.price.compareTo(b.price));
+    
+    // Apply sorting
+    switch (sortOrder) {
+      case SortOrder.highToLow:
+        properties.sort((a, b) => b.price.compareTo(a.price));
+        break;
+      case SortOrder.lowToHigh:
+        properties.sort((a, b) => a.price.compareTo(b.price));
+        break;
+      case SortOrder.roiHighToLow:
+        properties.sort((a, b) {
+          final aRoi = a.roiPercentage ?? 0;
+          final bRoi = b.roiPercentage ?? 0;
+          return bRoi.compareTo(aRoi);
+        });
+        break;
+      case SortOrder.roiLowToHigh:
+        properties.sort((a, b) {
+          final aRoi = a.roiPercentage ?? 0;
+          final bRoi = b.roiPercentage ?? 0;
+          return aRoi.compareTo(bRoi);
+        });
+        break;
+      case SortOrder.none:
+      default:
+        // No sorting applied
+        break;
     }
+    
     return properties;
+  }
+
+  /// Get properties sorted by ROI (Return on Investment) percentage
+  Future<List<Property>> getPropertiesByRoi({
+    int page = 1,
+    int limit = 10,
+    String? location,
+    PropertyType? propertyType,
+    double? minPrice,
+    double? maxPrice,
+    int? minBedrooms,
+    int? maxBedrooms,
+    bool? isFeatured,
+    bool highestFirst = true,
+  }) async {
+    return getProperties(
+      page: page,
+      limit: limit,
+      location: location,
+      propertyType: propertyType,
+      listingType: ListingType.sale, // ROI is typically for sale properties
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      minBedrooms: minBedrooms,
+      maxBedrooms: maxBedrooms,
+      isFeatured: isFeatured,
+      sortOrder: highestFirst ? SortOrder.roiHighToLow : SortOrder.roiLowToHigh,
+    );
   }
 
   Future<Property?> getPropertyById(String id) async {

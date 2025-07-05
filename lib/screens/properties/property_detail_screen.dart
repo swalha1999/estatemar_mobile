@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/property.dart';
 import '../../widgets/property_3d_viewer.dart';
+import '../../widgets/roi_display_widget.dart';
 import '../../services/property_service.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
@@ -89,7 +90,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             widget.property.formattedPrice,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.blue, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
+          // ROI Information
+          if (widget.property.annualNetIncome != null) ...[
+            RoiDisplayWidget(
+              property: widget.property,
+              showDetails: true,
+            ),
+            const SizedBox(height: 16),
+          ],
           Row(
             children: [
               const Icon(Icons.location_on, size: 18, color: Colors.grey),

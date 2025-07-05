@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/property.dart';
 import '../theme/colors.dart';
+import 'roi_display_widget.dart';
 
 class PropertyCard extends StatefulWidget {
   const PropertyCard({
@@ -61,6 +62,16 @@ class _PropertyCardState extends State<PropertyCard> {
                                   );
                                 },
                               ),
+                              // ROI Widget overlay on top left
+                              if (widget.property.annualNetIncome != null)
+                                Positioned(
+                                  top: 12,
+                                  left: 12,
+                                  child: RoiDisplayWidget(
+                                    property: widget.property,
+                                    compact: false,
+                                  ),
+                                ),
                               if (images.length > 1)
                                 Positioned(
                                   bottom: 8,
@@ -126,7 +137,7 @@ class _PropertyCardState extends State<PropertyCard> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                                    Text(
                     widget.property.formattedPrice,
                     style: const TextStyle(fontSize: 16, color: AppColors.primary, fontWeight: FontWeight.w600),
                   ),
