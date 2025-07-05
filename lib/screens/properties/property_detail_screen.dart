@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/property.dart';
 import '../../widgets/property_3d_viewer.dart';
 import '../../widgets/roi_display_widget.dart';
+import '../../widgets/payment_plan_widget.dart';
 import '../../services/property_service.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
@@ -155,6 +156,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             ),
             const SizedBox(height: 24),
           ],
+          // Payment Plans Section
+          PaymentPlanWidget(property: widget.property),
+          const SizedBox(height: 24),
 
         ],
       ),
