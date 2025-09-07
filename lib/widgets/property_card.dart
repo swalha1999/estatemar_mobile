@@ -44,7 +44,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                   child: SizedBox(
-                    height: 180,
+                    height: 150,
                     width: double.infinity,
                     child: images.isNotEmpty
                         ? Stack(
@@ -57,7 +57,7 @@ class _PropertyCardState extends State<PropertyCard> {
                                 itemBuilder: (context, index) {
                                   return SafeImage(
                                     imageUrl: images[index],
-                                    height: 180,
+                                    height: 150,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
                                     borderRadius: BorderRadius.zero,
@@ -129,30 +129,44 @@ class _PropertyCardState extends State<PropertyCard> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.property.title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                                    Text(
+                  const SizedBox(height: 6),
+                  Text(
                     widget.property.formattedPrice,
-                    style: const TextStyle(fontSize: 16, color: AppColors.primary, fontWeight: FontWeight.w600),
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 14,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           widget.property.location,
-                          style: const TextStyle(color: Colors.grey),
+                          style: const TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -161,11 +175,11 @@ class _PropertyCardState extends State<PropertyCard> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildFeature(Icons.bed, '${widget.property.bedrooms} beds'),
-                      const SizedBox(width: 12),
-                      _buildFeature(Icons.bathtub, '${widget.property.bathrooms} baths'),
-                      const SizedBox(width: 12),
-                      _buildFeature(Icons.square_foot, '${widget.property.area.toInt()} sqft'),
+                      _buildFeature(Icons.bed, '${widget.property.bedrooms}'),
+                      const SizedBox(width: 8),
+                      _buildFeature(Icons.bathtub, '${widget.property.bathrooms}'),
+                      const SizedBox(width: 8),
+                      _buildFeature(Icons.square_foot, '${widget.property.area.toInt()}'),
                     ],
                   ),
                 ],
@@ -180,11 +194,15 @@ class _PropertyCardState extends State<PropertyCard> {
   Widget _buildFeature(IconData icon, String label) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey[600]),
+        Icon(icon, size: 12, color: Colors.grey[600]),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 11,
+            color: Colors.grey,
+          ),
         ),
       ],
     );

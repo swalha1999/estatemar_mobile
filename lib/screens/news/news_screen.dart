@@ -45,7 +45,14 @@ class NewsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Real Estate News & Tips'),
+        title: const Text(
+          'Real Estate News & Tips',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
@@ -97,7 +104,8 @@ class _ModernNewsCard extends StatelessWidget {
                 children: [
                   Text(
                     item.title,
-                    style: TextStyle(
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -107,6 +115,7 @@ class _ModernNewsCard extends StatelessWidget {
                   Text(
                     item.message,
                     style: TextStyle(
+                      fontFamily: 'Montserrat',
                       fontSize: 15,
                       color: Colors.white.withOpacity(0.95),
                     ),

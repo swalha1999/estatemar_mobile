@@ -86,6 +86,56 @@ class AppTextStyles {
     color: AppColors.white,
   );
   
+  // Additional text styles for better theming
+  static const TextStyle headlineMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle headlineSmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 24,
+    fontWeight: FontWeight.bold,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 22,
+    fontWeight: FontWeight.w600,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle titleMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle bodyLarge = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.normal,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+    color: AppColors.grey,
+  );
+  
+  static const TextStyle bodySmall = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: AppColors.grey,
+  );
+  
   // Complete text theme for Material Design
   static const TextTheme textTheme = TextTheme(
     displayLarge: headline1,

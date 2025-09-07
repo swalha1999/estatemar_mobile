@@ -47,14 +47,18 @@ class CustomBottomNavigationBar extends StatelessWidget {
                    children: [
                      Icon(item.icon, size: 24, color: isSelected ? AppColors.primary : Colors.grey),
                      const SizedBox(height: 4),
-                     Text(
-                       item.label,
-                       style: TextStyle(
-                         fontSize: 12,
-                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                         color: isSelected ? AppColors.primary : Colors.grey,
-                       ),
-                     ),
+                    Text(
+                      item.label,
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 9,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : Colors.grey,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                    ],
                  ),
               ),

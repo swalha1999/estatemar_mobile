@@ -4,8 +4,9 @@ import '../../widgets/property_card.dart';
 import '../../widgets/animated_search_header.dart';
 import '../../models/property.dart';
 import '../../services/property_service.dart';
+import '../../config/app_config.dart';
 import 'package:estatemar_mobile/screens/properties/advanced_search_screen.dart';
-import 'package:estatemar_mobile/screens/properties/property_detail_screen.dart';
+import 'package:estatemar_mobile/screens/properties/property_view_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -136,6 +137,30 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       body: SafeArea(
         child: Column(
           children: [
+            // Mock data indicator
+            if (AppConfig.useMockData)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: Colors.orange[100],
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.orange[800], size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Demo Mode: Using sample data. Switch to real API in app_config.dart',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.orange[800],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             // Animated search header
             AnimatedSearchHeader(
               onSearchTap: () async {
@@ -208,7 +233,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           icon: Icon(tab.icon, size: 20),
                           child: Text(
                             tab.label,
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         );
                       }),
@@ -307,7 +336,18 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     }
 
     if (filtered.isEmpty) {
-      return const Expanded(child: Center(child: Text('No properties found.')));
+      return Expanded(
+        child: Center(
+          child: Text(
+            'No properties found.',
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      );
     }
 
     return Expanded(
@@ -325,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => PropertyDetailScreen(property: property),
+                  builder: (context) => PropertyViewScreen(property: property),
                 ),
               );
               await _fetchFavoriteIds();
@@ -363,6 +403,7 @@ class _FilterChip extends StatelessWidget {
         label: Text(
           text,
           style: const TextStyle(
+            fontFamily: 'Montserrat',
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'screens/main_navigation_screen.dart';
 import 'theme/app_theme.dart';
+import 'services/auth_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AuthService.initialize();
   runApp(const MyApp());
 }
 

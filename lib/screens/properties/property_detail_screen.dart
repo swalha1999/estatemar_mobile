@@ -1,435 +1,610 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../models/property.dart';
-import '../../widgets/property_3d_viewer.dart';
-import '../../widgets/roi_display_widget.dart';
-import '../../widgets/payment_plan_widget.dart';
-import '../../widgets/safe_image.dart';
-import '../../services/property_service.dart';
+import '../../models/user_property.dart';
+import '../../services/user_property_service.dart';
+import '../../theme/colors.dart';
+import 'edit_property_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
-  final Property property;
-  const PropertyDetailScreen({super.key, required this.property});
+  final UserProperty property;
+
+  const PropertyDetailScreen({
+    super.key,
+    required this.property,
+  });
 
   @override
   State<PropertyDetailScreen> createState() => _PropertyDetailScreenState();
 }
 
 class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
-  bool _isFavorite = false;
-  final PropertyService _propertyService = PropertyService();
-  bool _loadingFavorite = true;
+  late UserProperty _property;
 
   @override
   void initState() {
     super.initState();
-    _loadFavoriteState();
+    _property = widget.property;
   }
 
-  Future<void> _loadFavoriteState() async {
-    final isFav = await _propertyService.isFavorite(widget.property.id);
-    if (mounted) {
+  Future<void> _navigateToEditProperty() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPropertyScreen(property: _property),
+      ),
+    );
+
+    if (result == true && mounted) {
+      // Refresh property data
+      final updatedProperty = await UserPropertyService.getUserProperties(_property.userId)
+          .then((properties) => properties.firstWhere(
+                (p) => p.id == _property.id,
+                orElse: () => _property,
+              ));
+      
       setState(() {
-        _isFavorite = isFav;
-        _loadingFavorite = false;
+        _property = updatedProperty;
       });
     }
   }
 
-  Future<void> _toggleFavorite() async {
-    setState(() => _loadingFavorite = true);
-    await _propertyService.toggleFavorite(widget.property.id);
-    final isFav = await _propertyService.isFavorite(widget.property.id);
-    if (mounted) {
-      setState(() {
-        _isFavorite = isFav;
-        _loadingFavorite = false;
-      });
+  Future<void> _deleteProperty() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Property'),
+        content: Text('Are you sure you want to delete "${_property.propertyName}"? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      final success = await UserPropertyService.deleteProperty(_property.userId, _property.id);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Property deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true); // Return true to indicate deletion
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete property'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
+        title: Text(
+          _property.propertyName,
+          style: const TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        title: Text(widget.property.title, maxLines: 1, overflow: TextOverflow.ellipsis),
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
-      ),
-      body: ListView(
-        children: [
-          _buildImageGallery(context),
-          _buildPropertyDetails(context),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomBar(context),
-    );
-  }
-
-  Widget _buildImageGallery(BuildContext context) {
-    return _PropertyImageGallery(imageUrls: widget.property.imageUrls);
-  }
-
-  Widget _buildPropertyDetails(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.property.title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        elevation: 0,
+        foregroundColor: AppColors.textPrimary,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back),
+        ),
+        actions: [
+          IconButton(
+            onPressed: _navigateToEditProperty,
+            icon: const Icon(Icons.edit),
           ),
-          const SizedBox(height: 8),
-          Text(
-            widget.property.formattedPrice,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.blue, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          // ROI Information
-          if (widget.property.annualNetIncome != null) ...[
-            RoiDisplayWidget(
-              property: widget.property,
-              showDetails: true,
-            ),
-            const SizedBox(height: 16),
-          ],
-          Row(
-            children: [
-              const Icon(Icons.location_on, size: 18, color: Colors.grey),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  widget.property.location,
-                  style: const TextStyle(color: Colors.grey),
-                  overflow: TextOverflow.ellipsis,
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'delete') {
+                _deleteProperty();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'delete',
+                child: Row(
+                  children: [
+                    Icon(Icons.delete, color: Colors.red, size: 18),
+                    SizedBox(width: 8),
+                    Text('Delete'),
+                  ],
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              _buildFeatureChip(Icons.bed, '${widget.property.bedrooms} beds'),
-              const SizedBox(width: 8),
-              _buildFeatureChip(Icons.bathroom, '${widget.property.bathrooms} baths'),
-              const SizedBox(width: 8),
-              _buildFeatureChip(Icons.square_foot, '${widget.property.area.toInt()} sq ft'),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            widget.property.description,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-          const SizedBox(height: 24),
-          if (widget.property.latitude != null && widget.property.longitude != null) ...[
-            _PropertyLocationMap(
-              latitude: widget.property.latitude!,
-              longitude: widget.property.longitude!,
-            ),
-            const SizedBox(height: 24),
-          ],
-          if (widget.property.virtualTourUrl != null) ...[
-            Property3DViewerCard(
-              virtualTourUrl: widget.property.virtualTourUrl,
-              propertyTitle: widget.property.title,
-            ),
-            const SizedBox(height: 24),
-          ],
-          if (widget.property.amenities.isNotEmpty) ...[
-            Text('Amenities', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.property.amenities.map((a) => Chip(
-                avatar: Icon(_amenityIcon(a), size: 18, color: Colors.grey[800]),
-                label: Text(a),
-              )).toList(),
-            ),
-            const SizedBox(height: 24),
-          ],
-          // Payment Plans Section
-          Text('Payment Plan', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            child: PaymentPlanWidget(property: widget.property),
-          ),
-          const SizedBox(height: 24),
-
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 13, color: Colors.grey),
+            child: const Icon(Icons.more_vert),
           ),
         ],
       ),
-    );
-  }
-
-
-  Widget _buildBottomBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          const SizedBox(height: 18),
-          Text(
-            'Property price:  ${widget.property.formattedPrice}',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey[800]),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: SizedBox(
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Property Header Card
+            Container(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: Implement contact action
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Contact Us', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: TextButton(
-              onPressed: _loadingFavorite ? null : _toggleFavorite,
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                foregroundColor: _isFavorite ? Colors.red : Colors.grey[800],
-              ),
-              child: _loadingFavorite
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.red : Colors.grey[800]),
-                        const SizedBox(width: 8),
-                        Text(
-                          _isFavorite ? 'Remove from Favorites' : 'Add to Favorites',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: _isFavorite ? Colors.red : Colors.grey[800]),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ],
+                        child: Icon(
+                          Icons.home,
+                          color: AppColors.primary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _property.propertyName,
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _property.address,
+                              style: const TextStyle(
+                                fontFamily: 'Montserrat',
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
+                    child: Text(
+                      _property.propertyTypeString,
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 12,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
+            
+            const SizedBox(height: 24),
+            
+            // Financial Overview Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Financial Overview',
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Purchase Price',
+                          _property.formattedPurchasePrice,
+                          Icons.shopping_cart,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Market Value',
+                          _property.formattedMarketValue,
+                          Icons.trending_up,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Profit/Loss',
+                          _property.formattedProfitLoss,
+                          Icons.account_balance_wallet,
+                          isProfit: _property.profitLoss != null && _property.profitLoss! >= 0,
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Return %',
+                          _property.formattedProfitLossPercentage,
+                          Icons.percent,
+                          isProfit: _property.profitLossPercentage != null && _property.profitLossPercentage! >= 0,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // Rental Information Card
+            if (_property.monthlyRent != null || _property.annualAppreciationRate != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Investment Analysis',
+                      style: const TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    if (_property.monthlyRent != null) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildFinancialItem(
+                              'Monthly Rent',
+                              _property.formattedMonthlyRent,
+                              Icons.home_work,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildFinancialItem(
+                              'Annual Rent',
+                              _property.formattedAnnualRent,
+                              Icons.calendar_today,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildFinancialItem(
+                              'Rental Yield',
+                              _property.formattedRentalYield,
+                              Icons.percent,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildFinancialItem(
+                              'Total Return',
+                              _property.formattedTotalReturnPercentage,
+                              Icons.trending_up,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    
+                    if (_property.annualAppreciationRate != null && _property.monthlyRent == null) ...[
+                      _buildFinancialItem(
+                        'Annual Appreciation',
+                        '${_property.annualAppreciationRate!.toStringAsFixed(1)}%',
+                        Icons.trending_up,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            
+            if (_property.monthlyRent != null || _property.annualAppreciationRate != null)
+              const SizedBox(height: 24),
+            
+            // Property Details Card
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Property Details',
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  if (_property.purchaseDate != null) ...[
+                    _buildDetailRow(
+                      'Purchase Date',
+                      _formatDate(_property.purchaseDate!),
+                      Icons.calendar_today,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  
+                  if (_property.description != null && _property.description!.isNotEmpty) ...[
+                    _buildDetailRow(
+                      'Description',
+                      _property.description!,
+                      Icons.description,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  
+                  _buildDetailRow(
+                    'Property Type',
+                    _property.propertyTypeString,
+                    Icons.category,
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  _buildDetailRow(
+                    'Created',
+                    _formatDate(_property.createdAt ?? DateTime.now()),
+                    Icons.access_time,
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 100), // Add space for fixed bottom buttons
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _navigateToEditProperty,
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: const Text(
+                    'Edit Property',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _deleteProperty,
+                  icon: const Icon(Icons.delete, size: 18),
+                  label: const Text(
+                    'Delete',
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red[50],
+                    foregroundColor: Colors.red[700],
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  IconData _amenityIcon(String amenity) {
-    final lower = amenity.toLowerCase();
-    if (lower.contains('pool')) return Icons.pool;
-    if (lower.contains('ocean') || lower.contains('sea') || lower.contains('view')) return Icons.waves;
-    if (lower.contains('garden') || lower.contains('yard')) return Icons.park;
-    if (lower.contains('garage') || lower.contains('parking')) return Icons.garage;
-    if (lower.contains('fireplace')) return Icons.fireplace;
-    if (lower.contains('gym') || lower.contains('fitness')) return Icons.fitness_center;
-    if (lower.contains('concierge')) return Icons.room_service;
-    if (lower.contains('rooftop')) return Icons.roofing;
-    if (lower.contains('kitchen')) return Icons.kitchen;
-    if (lower.contains('laundry')) return Icons.local_laundry_service;
-    if (lower.contains('balcony') || lower.contains('terrace')) return Icons.balcony;
-    if (lower.contains('security')) return Icons.security;
-    if (lower.contains('elevator') || lower.contains('lift')) return Icons.elevator;
-    if (lower.contains('wifi') || lower.contains('internet')) return Icons.wifi;
-    if (lower.contains('air conditioning') || lower.contains('ac')) return Icons.ac_unit;
-    if (lower.contains('pet')) return Icons.pets;
-    if (lower.contains('floor')) return Icons.layers;
-    if (lower.contains('access')) return Icons.lock_open;
-    return Icons.check_circle_outline;
-  }
-}
-
-class _PropertyLocationMap extends StatelessWidget {
-  final double latitude;
-  final double longitude;
-
-  const _PropertyLocationMap({required this.latitude, required this.longitude});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildFinancialItem(
+    String label,
+    String value,
+    IconData icon, {
+    bool isProfit = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Location',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 200,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: FlutterMap(
-              options: MapOptions(
-                initialCenter: LatLng(latitude, longitude),
-                initialZoom: 12.0,
-                interactionOptions: const InteractionOptions(
-                  flags: InteractiveFlag.none,
-                ),
+        Row(
+          children: [
+            Icon(icon, size: 16, color: AppColors.textSecondary),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 12,
+                color: AppColors.textSecondary,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                  retinaMode: RetinaMode.isHighDensity(context),
-                ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: LatLng(latitude, longitude),
-                      width: 80,
-                      height: 80,
-                      child: Icon(
-                        Icons.location_pin,
-                        size: 40,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-                RichAttributionWidget(
-                  attributions: [
-                    TextSourceAttribution(
-                      '© OpenStreetMap contributors',
-                      onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
-                    ),
-                    TextSourceAttribution(
-                      '© CARTO',
-                      onTap: () => launchUrl(Uri.parse('https://carto.com/attributions')),
-                    ),
-                  ],
-                ),
-              ],
             ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: isProfit 
+                ? (value.startsWith('+') ? Colors.green : Colors.red)
+                : AppColors.textPrimary,
           ),
         ),
       ],
     );
   }
-}
 
-class _PropertyImageGallery extends StatefulWidget {
-  final List<String> imageUrls;
-  const _PropertyImageGallery({required this.imageUrls});
-
-  @override
-  State<_PropertyImageGallery> createState() => _PropertyImageGalleryState();
-}
-
-class _PropertyImageGalleryState extends State<_PropertyImageGallery> {
-  int _currentIndex = 0;
-  late final PageController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PageController();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 280,
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _controller,
-            itemCount: widget.imageUrls.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: SafeImage(
-                  imageUrl: widget.imageUrls[index],
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                  borderRadius: BorderRadius.circular(16),
-                  showRetry: true,
+  Widget _buildDetailRow(String label, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
-              );
-            },
-          ),
-          Positioned(
-            top: 20,
-            right: 24,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(
-                '${_currentIndex + 1} / ${widget.imageUrls.length}',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-} 
+
+  String _formatDate(DateTime date) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+  }
+}

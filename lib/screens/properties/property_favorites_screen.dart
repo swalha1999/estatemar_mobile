@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../widgets/property_card.dart';
 import '../../services/property_service.dart';
-import '../../screens/properties/property_detail_screen.dart';
+import '../../screens/properties/property_view_screen.dart';
 import '../../models/property.dart';
+import '../../theme/colors.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -79,20 +80,38 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Text(
                 'Favorite Properties',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                      ? Center(child: Text('Failed to load favorites: \\$_error'))
+                      ? Center(
+                          child: Text(
+                            'Failed to load favorites: $_error',
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                        )
                       : _favorites.isEmpty
                           ? const Center(
-                      child: Text(
-                        'No favorite properties yet.',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
+                              child: Text(
+                                'No favorite properties yet.',
+                                style: TextStyle(
+                                  fontFamily: 'Montserrat',
+                                  fontSize: 16,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             )
                           : AnimatedList(
                               key: _listKey,
@@ -111,7 +130,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                          builder: (context) => PropertyDetailScreen(property: property),
+                                          builder: (context) => PropertyViewScreen(property: property),
                             ),
                           );
                         },

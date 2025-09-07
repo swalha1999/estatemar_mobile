@@ -15,6 +15,10 @@ class AppColors {
   static const Color warning = Color(0xFFFF9800);
   static const Color error = Color(0xFFE53E3E);
   
+  // Text colors
+  static const Color textPrimary = Color(0xFF363636);
+  static const Color textSecondary = Color(0xFF6B7280);
+  
   // Opacity variations
   static Color primaryWithOpacity(double opacity) => primary.withOpacity(opacity);
   static Color greyWithOpacity(double opacity) => grey.withOpacity(opacity);
