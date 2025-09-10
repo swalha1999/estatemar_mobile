@@ -22,13 +22,20 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _marketValueController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _monthlyRentController = TextEditingController();
-  final _appreciationRateController = TextEditingController();
   
-  PropertyType _selectedPropertyType = PropertyType.house;
   DateTime? _purchaseDate;
   bool _isLoading = false;
   List<File> _selectedImages = [];
   final ImagePicker _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    // Add listeners for price formatting
+    _purchasePriceController.addListener(_formatPurchasePrice);
+    _marketValueController.addListener(_formatMarketValue);
+    _monthlyRentController.addListener(_formatMonthlyRent);
+  }
 
   @override
   void dispose() {
@@ -38,7 +45,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     _marketValueController.dispose();
     _descriptionController.dispose();
     _monthlyRentController.dispose();
-    _appreciationRateController.dispose();
     super.dispose();
   }
 
@@ -58,21 +64,14 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         userId: user.id,
         propertyName: _propertyNameController.text.trim(),
         address: _addressController.text.trim(),
-        purchasePrice: double.parse(_purchasePriceController.text.trim()),
-        marketValue: _marketValueController.text.trim().isNotEmpty 
-            ? double.parse(_marketValueController.text.trim()) 
-            : null,
+        purchasePrice: _parseFormattedNumber(_purchasePriceController.text) ?? 0.0,
+        marketValue: _parseFormattedNumber(_marketValueController.text),
         description: _descriptionController.text.trim().isNotEmpty 
             ? _descriptionController.text.trim() 
             : null,
-        propertyType: _selectedPropertyType,
+        propertyType: PropertyType.house, // Default to house
         purchaseDate: _purchaseDate,
-        monthlyRent: _monthlyRentController.text.trim().isNotEmpty 
-            ? double.parse(_monthlyRentController.text.trim()) 
-            : null,
-        annualAppreciationRate: _appreciationRateController.text.trim().isNotEmpty 
-            ? double.parse(_appreciationRateController.text.trim()) 
-            : null,
+        monthlyRent: _parseFormattedNumber(_monthlyRentController.text),
         imageUrls: _selectedImages.map((file) => file.path).toList(),
         createdAt: DateTime.now(),
       );
@@ -113,6 +112,65 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _formatPurchasePrice() {
+    final text = _purchasePriceController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _purchasePriceController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  void _formatMarketValue() {
+    final text = _marketValueController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _marketValueController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  void _formatMonthlyRent() {
+    final text = _monthlyRentController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _monthlyRentController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  String _formatNumber(int number) {
+    if (number == 0) return '';
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
+
+  double? _parseFormattedNumber(String text) {
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) return null;
+    return double.tryParse(cleanText);
   }
 
   Future<void> _selectPurchaseDate() async {
@@ -371,7 +429,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter purchase price';
                         }
-                        final price = double.tryParse(value.trim());
+                        final price = _parseFormattedNumber(value);
                         if (price == null || price <= 0) {
                           return 'Please enter a valid price';
                         }
@@ -379,58 +437,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       },
                     ),
                     
-                    const SizedBox(height: 12),
-                    
-                    // Property Type
-                    DropdownButtonFormField<PropertyType>(
-                      value: _selectedPropertyType,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
-                      isExpanded: true,
-                      menuMaxHeight: 300,
-                      decoration: InputDecoration(
-                        labelText: 'Property Type *',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                        prefixIcon: const Icon(Icons.category, size: 18),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      ),
-                      items: PropertyType.values.map((type) {
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Text(
-                            _getPropertyTypeString(type),
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 14,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _selectedPropertyType = value);
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -508,7 +514,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
-                          final price = double.tryParse(value.trim());
+                          final price = _parseFormattedNumber(value);
                           if (price == null || price <= 0) {
                             return 'Please enter a valid market value';
                           }
@@ -609,7 +615,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
-                          final rent = double.tryParse(value.trim());
+                          final rent = _parseFormattedNumber(value);
                           if (rent == null || rent <= 0) {
                             return 'Please enter a valid monthly rent';
                           }
@@ -620,58 +626,6 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     
                     const SizedBox(height: 12),
                     
-                    // Annual Appreciation Rate
-                    TextFormField(
-                      controller: _appreciationRateController,
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
-                      decoration: InputDecoration(
-                        labelText: 'Annual Appreciation Rate (%)',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
-                        hintText: 'e.g., 3.5',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
-                        prefixIcon: const Icon(Icons.trending_up, size: 18),
-                        suffixIcon: const Icon(Icons.percent, size: 18),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        isDense: true,
-                      ),
-                      validator: (value) {
-                        if (value != null && value.trim().isNotEmpty) {
-                          final rate = double.tryParse(value.trim());
-                          if (rate == null || rate < 0 || rate > 100) {
-                            return 'Please enter a valid appreciation rate (0-100)';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    const SizedBox(height: 12),
                     
                     // Description
                     TextFormField(
@@ -689,13 +643,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
-                        hintText: 'Additional details about the property...',
+                        hintText: '📝 Additional details about the property...',
                         hintStyle: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 12,
                           color: Colors.grey[400],
                         ),
-                        prefixIcon: const Icon(Icons.description, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -929,20 +882,4 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     );
   }
 
-  String _getPropertyTypeString(PropertyType type) {
-    switch (type) {
-      case PropertyType.house:
-        return 'House';
-      case PropertyType.apartment:
-        return 'Apartment';
-      case PropertyType.condo:
-        return 'Condo';
-      case PropertyType.townhouse:
-        return 'Townhouse';
-      case PropertyType.villa:
-        return 'Villa';
-      case PropertyType.studio:
-        return 'Studio';
-    }
-  }
 }

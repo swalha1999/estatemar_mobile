@@ -27,6 +27,7 @@ class _SellScreenState extends State<SellScreen> {
   List<UserProperty> _userProperties = [];
   List<ListingRequest> _listingRequests = [];
   UserProperty? _selectedProperty;
+  ListingRequest? _selectedListingRequest;
   bool _isLoading = false;
   bool _isSubmitting = false;
 
@@ -34,12 +35,43 @@ class _SellScreenState extends State<SellScreen> {
   void initState() {
     super.initState();
     _loadUserProperties();
+    // Add listener for asking price formatting
+    _askingPriceController.addListener(_formatAskingPrice);
   }
 
   @override
   void dispose() {
     _askingPriceController.dispose();
     super.dispose();
+  }
+
+  void _formatAskingPrice() {
+    final text = _askingPriceController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _askingPriceController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  String _formatNumber(int number) {
+    if (number == 0) return '';
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
+
+  double? _parseFormattedNumber(String text) {
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) return null;
+    return double.tryParse(cleanText);
   }
 
   Future<void> _loadUserProperties() async {
@@ -60,6 +92,108 @@ class _SellScreenState extends State<SellScreen> {
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  Future<void> _cancelListingRequest(String requestId) async {
+    try {
+      final success = await ListingRequestService.cancelListingRequest(requestId);
+      
+      if (mounted) {
+        if (success) {
+          _showSuccessSnackBar('Listing request cancelled successfully');
+          // Clear selection and refresh the listing requests
+          setState(() {
+            _selectedListingRequest = null;
+          });
+          await _loadUserProperties();
+        } else {
+          _showErrorSnackBar('Failed to cancel listing request');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Error cancelling listing request: $e');
+      }
+    }
+  }
+
+  Widget _buildCancelButton() {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: () => _showCancelConfirmation(_selectedListingRequest!),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red[50],
+          foregroundColor: Colors.red[600],
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.red[200]!),
+          ),
+        ),
+        icon: const Icon(Icons.close, size: 18),
+        label: const Text(
+          'Cancel Selected Request',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showCancelConfirmation(ListingRequest request) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Cancel Listing Request',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to cancel the listing request for "${request.propertyName}"?',
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Keep Request',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _cancelListingRequest(request.id);
+              },
+              child: const Text(
+                'Cancel Request',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _submitListingRequest() async {
@@ -85,7 +219,7 @@ class _SellScreenState extends State<SellScreen> {
         return;
       }
 
-      final askingPrice = double.tryParse(_askingPriceController.text) ?? 0.0;
+      final askingPrice = _parseFormattedNumber(_askingPriceController.text) ?? 0.0;
       if (askingPrice <= 0) {
         _showErrorSnackBar('Please enter a valid asking price');
         return;
@@ -367,95 +501,122 @@ class _SellScreenState extends State<SellScreen> {
           ),
           const SizedBox(height: 16),
           ..._listingRequests.map((request) => _buildListingRequestItem(request)),
+          if (_selectedListingRequest != null && 
+              _selectedListingRequest!.status == ListingRequestStatus.pending) ...[
+            const SizedBox(height: 16),
+            _buildCancelButton(),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildListingRequestItem(ListingRequest request) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: request.statusColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: request.statusColor.withOpacity(0.2),
-          width: 1,
+    final isSelected = _selectedListingRequest?.id == request.id;
+    final canCancel = request.status == ListingRequestStatus.pending;
+    
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedListingRequest = request;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? AppColors.primary.withOpacity(0.1)
+              : request.statusColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected 
+                ? AppColors.primary
+                : request.statusColor.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            request.status == ListingRequestStatus.pending
-                ? Icons.hourglass_empty
-                : request.status == ListingRequestStatus.approved
-                    ? Icons.check_circle
-                    : Icons.cancel,
-            color: request.statusColor,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  request.propertyName,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  request.propertyAddress,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      'Status: ',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    Text(
-                      request.statusDisplayName,
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: request.statusColor,
-                      ),
-                    ),
-                    const Spacer(),
-                    Text(
-                      request.formattedAskingPrice,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        child: Row(
+          children: [
+            Icon(
+              request.status == ListingRequestStatus.pending
+                  ? Icons.hourglass_empty
+                  : request.status == ListingRequestStatus.approved
+                      ? Icons.check_circle
+                      : request.status == ListingRequestStatus.cancelled
+                          ? Icons.cancel_outlined
+                          : Icons.cancel,
+              color: request.statusColor,
+              size: 20,
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    request.propertyName,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    request.propertyAddress,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        'Status: ',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        request.statusDisplayName,
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: request.statusColor,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        request.formattedAskingPrice,
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected && canCancel)
+              Icon(
+                Icons.check_circle,
+                color: AppColors.primary,
+                size: 20,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -518,7 +679,7 @@ class _SellScreenState extends State<SellScreen> {
           _selectedProperty = property;
           // Pre-fill asking price with market value if available
           if (property.marketValue != null && property.marketValue! > 0) {
-            _askingPriceController.text = property.marketValue!.toStringAsFixed(0);
+            _askingPriceController.text = _formatNumber(property.marketValue!.toInt());
           }
         });
       },
@@ -568,7 +729,7 @@ class _SellScreenState extends State<SellScreen> {
                   if (property.marketValue != null && property.marketValue! > 0) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Market Value: \$${property.marketValue!.toStringAsFixed(0)}',
+                      'Market Value: \$${_formatNumber(property.marketValue!.toInt())}',
                       style: const TextStyle(
                         fontFamily: 'Montserrat',
                         fontSize: 11,
@@ -630,7 +791,7 @@ class _SellScreenState extends State<SellScreen> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter the asking price';
               }
-              final price = double.tryParse(value);
+              final price = _parseFormattedNumber(value);
               if (price == null || price <= 0) {
                 return 'Please enter a valid price';
               }

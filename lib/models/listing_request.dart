@@ -4,6 +4,7 @@ enum ListingRequestStatus {
   pending,
   approved,
   rejected,
+  cancelled,
 }
 
 class ListingRequest {
@@ -107,6 +108,8 @@ class ListingRequest {
         return ListingRequestStatus.approved;
       case 'rejected':
         return ListingRequestStatus.rejected;
+      case 'cancelled':
+        return ListingRequestStatus.cancelled;
       default:
         return ListingRequestStatus.pending;
     }
@@ -120,6 +123,8 @@ class ListingRequest {
         return 'Approved';
       case ListingRequestStatus.rejected:
         return 'Rejected';
+      case ListingRequestStatus.cancelled:
+        return 'Cancelled';
     }
   }
 
@@ -131,6 +136,8 @@ class ListingRequest {
         return Colors.green;
       case ListingRequestStatus.rejected:
         return Colors.red;
+      case ListingRequestStatus.cancelled:
+        return Colors.grey;
     }
   }
 

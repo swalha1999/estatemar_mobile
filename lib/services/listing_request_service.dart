@@ -97,4 +97,35 @@ class ListingRequestService {
         request.propertyId == propertyId && 
         request.status == ListingRequestStatus.pending);
   }
+
+  static Future<bool> cancelListingRequest(String id) async {
+    try {
+      final allRequests = await getListingRequests();
+      final index = allRequests.indexWhere((request) => request.id == id);
+      
+      if (index == -1) {
+        return false;
+      }
+      
+      // Only allow cancellation of pending requests
+      if (allRequests[index].status != ListingRequestStatus.pending) {
+        return false;
+      }
+      
+      // Update the request status to cancelled
+      allRequests[index] = allRequests[index].copyWith(
+        status: ListingRequestStatus.cancelled,
+        updatedAt: DateTime.now(),
+      );
+      
+      final prefs = await SharedPreferences.getInstance();
+      final requestsJson = json.encode(
+        allRequests.map((request) => request.toJson()).toList(),
+      );
+      
+      return await prefs.setString(_key, requestsJson);
+    } catch (e) {
+      return false;
+    }
+  }
 }

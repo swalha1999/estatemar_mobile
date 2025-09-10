@@ -24,9 +24,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   final _marketValueController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _monthlyRentController = TextEditingController();
-  final _appreciationRateController = TextEditingController();
   
-  PropertyType _selectedPropertyType = PropertyType.house;
   DateTime? _purchaseDate;
   bool _isLoading = false;
 
@@ -34,17 +32,23 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   void initState() {
     super.initState();
     _loadPropertyData();
+    // Add listeners for price formatting
+    _purchasePriceController.addListener(_formatPurchasePrice);
+    _marketValueController.addListener(_formatMarketValue);
+    _monthlyRentController.addListener(_formatMonthlyRent);
   }
 
   void _loadPropertyData() {
     _propertyNameController.text = widget.property.propertyName;
     _addressController.text = widget.property.address;
-    _purchasePriceController.text = widget.property.purchasePrice.toString();
-    _marketValueController.text = widget.property.marketValue?.toString() ?? '';
+    _purchasePriceController.text = _formatNumber(widget.property.purchasePrice.toInt());
+    _marketValueController.text = widget.property.marketValue != null 
+        ? _formatNumber(widget.property.marketValue!.toInt()) 
+        : '';
     _descriptionController.text = widget.property.description ?? '';
-    _monthlyRentController.text = widget.property.monthlyRent?.toString() ?? '';
-    _appreciationRateController.text = widget.property.annualAppreciationRate?.toString() ?? '';
-    _selectedPropertyType = widget.property.propertyType ?? PropertyType.house;
+    _monthlyRentController.text = widget.property.monthlyRent != null 
+        ? _formatNumber(widget.property.monthlyRent!.toInt()) 
+        : '';
     _purchaseDate = widget.property.purchaseDate;
   }
 
@@ -56,8 +60,66 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     _marketValueController.dispose();
     _descriptionController.dispose();
     _monthlyRentController.dispose();
-    _appreciationRateController.dispose();
     super.dispose();
+  }
+
+  void _formatPurchasePrice() {
+    final text = _purchasePriceController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _purchasePriceController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  void _formatMarketValue() {
+    final text = _marketValueController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _marketValueController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  void _formatMonthlyRent() {
+    final text = _monthlyRentController.text;
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isNotEmpty) {
+      final number = int.parse(cleanText);
+      final formatted = _formatNumber(number);
+      if (formatted != text) {
+        _monthlyRentController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  String _formatNumber(int number) {
+    if (number == 0) return '';
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+  }
+
+  double? _parseFormattedNumber(String text) {
+    final cleanText = text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanText.isEmpty) return null;
+    return double.tryParse(cleanText);
   }
 
   Future<void> _handleSaveProperty() async {
@@ -69,21 +131,15 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
       final updatedProperty = widget.property.copyWith(
         propertyName: _propertyNameController.text.trim(),
         address: _addressController.text.trim(),
-        purchasePrice: double.parse(_purchasePriceController.text.trim()),
-        marketValue: _marketValueController.text.trim().isNotEmpty 
-            ? double.parse(_marketValueController.text.trim()) 
-            : null,
+        purchasePrice: _parseFormattedNumber(_purchasePriceController.text) ?? 0.0,
+        marketValue: _parseFormattedNumber(_marketValueController.text),
         description: _descriptionController.text.trim().isNotEmpty 
             ? _descriptionController.text.trim() 
             : null,
-        propertyType: _selectedPropertyType,
+        propertyType: widget.property.propertyType ?? PropertyType.house,
         purchaseDate: _purchaseDate,
-        monthlyRent: _monthlyRentController.text.trim().isNotEmpty 
-            ? double.parse(_monthlyRentController.text.trim()) 
-            : null,
-        annualAppreciationRate: _appreciationRateController.text.trim().isNotEmpty 
-            ? double.parse(_appreciationRateController.text.trim()) 
-            : null,
+        monthlyRent: _parseFormattedNumber(_monthlyRentController.text),
+        annualAppreciationRate: null,
         updatedAt: DateTime.now(),
       );
 
@@ -287,7 +343,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Please enter purchase price';
                         }
-                        final price = double.tryParse(value.trim());
+                        final price = _parseFormattedNumber(value);
                         if (price == null || price <= 0) {
                           return 'Please enter a valid price';
                         }
@@ -295,40 +351,6 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       },
                     ),
                     
-                    const SizedBox(height: 16),
-                    
-                    // Property Type
-                    DropdownButtonFormField<PropertyType>(
-                      value: _selectedPropertyType,
-                      decoration: InputDecoration(
-                        labelText: 'Property Type *',
-                        prefixIcon: const Icon(Icons.category),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      items: PropertyType.values.map((type) {
-                        return DropdownMenuItem(
-                          value: type,
-                          child: Text(_getPropertyTypeString(type)),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() => _selectedPropertyType = value);
-                        }
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -390,7 +412,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
-                          final price = double.tryParse(value.trim());
+                          final price = _parseFormattedNumber(value);
                           if (price == null || price <= 0) {
                             return 'Please enter a valid market value';
                           }
@@ -475,7 +497,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
-                          final rent = double.tryParse(value.trim());
+                          final rent = _parseFormattedNumber(value);
                           if (rent == null || rent <= 0) {
                             return 'Please enter a valid monthly rent';
                           }
@@ -486,42 +508,6 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                     
                     const SizedBox(height: 16),
                     
-                    // Annual Appreciation Rate
-                    TextFormField(
-                      controller: _appreciationRateController,
-                      keyboardType: TextInputType.number,
-                      textInputAction: TextInputAction.next,
-                      decoration: InputDecoration(
-                        labelText: 'Annual Appreciation Rate (%)',
-                        hintText: 'e.g., 3.5',
-                        prefixIcon: const Icon(Icons.trending_up),
-                        suffixIcon: const Icon(Icons.percent),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      validator: (value) {
-                        if (value != null && value.trim().isNotEmpty) {
-                          final rate = double.tryParse(value.trim());
-                          if (rate == null || rate < 0 || rate > 100) {
-                            return 'Please enter a valid appreciation rate (0-100)';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    const SizedBox(height: 16),
                     
                     // Description
                     TextFormField(
@@ -530,8 +516,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: 'Description',
-                        hintText: 'Additional details about the property...',
-                        prefixIcon: const Icon(Icons.description),
+                        hintText: '📝 Additional details about the property...',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -608,20 +593,4 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     );
   }
 
-  String _getPropertyTypeString(PropertyType type) {
-    switch (type) {
-      case PropertyType.house:
-        return 'House';
-      case PropertyType.apartment:
-        return 'Apartment';
-      case PropertyType.condo:
-        return 'Condo';
-      case PropertyType.townhouse:
-        return 'Townhouse';
-      case PropertyType.villa:
-        return 'Villa';
-      case PropertyType.studio:
-        return 'Studio';
-    }
-  }
 }
