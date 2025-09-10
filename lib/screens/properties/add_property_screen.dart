@@ -5,7 +5,7 @@ import '../../models/property.dart';
 import '../../models/user_property.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_property_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 
 class AddPropertyScreen extends StatefulWidget {
   const AddPropertyScreen({super.key});
@@ -22,6 +22,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _marketValueController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _monthlyRentController = TextEditingController();
+  final _sizeController = TextEditingController();
   
   DateTime? _purchaseDate;
   bool _isLoading = false;
@@ -45,6 +46,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     _marketValueController.dispose();
     _descriptionController.dispose();
     _monthlyRentController.dispose();
+    _sizeController.dispose();
     super.dispose();
   }
 
@@ -72,6 +74,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         propertyType: PropertyType.house, // Default to house
         purchaseDate: _purchaseDate,
         monthlyRent: _parseFormattedNumber(_monthlyRentController.text),
+        area: _sizeController.text.trim().isNotEmpty 
+            ? double.tryParse(_sizeController.text.trim())
+            : null,
         imageUrls: _selectedImages.map((file) => file.path).toList(),
         createdAt: DateTime.now(),
       );
@@ -81,9 +86,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Property added successfully!'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Property added successfully!'),
+              backgroundColor: AppTheme.success,
             ),
           );
           Navigator.pop(context, true); // Return true to indicate successful addition
@@ -91,9 +96,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to add property'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text('Failed to add property'),
+              backgroundColor: AppTheme.error,
             ),
           );
         }
@@ -103,7 +108,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -199,7 +204,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to pick images: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -215,19 +220,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text(
-          'Add Property',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        title: const Text('Add Property'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
@@ -241,13 +236,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     width: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text(
+                : Text(
                     'Save',
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 14,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                    style: AppTheme.buttonMedium.copyWith(
+                      color: AppTheme.primary,
                     ),
                   ),
           ),
@@ -265,7 +257,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -280,12 +272,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   children: [
                     Text(
                       'Required Information',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingMedium,
                     ),
                     
                     const SizedBox(height: 16),
@@ -294,37 +281,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     TextFormField(
                       controller: _propertyNameController,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Property Name/Address *',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: 'e.g., 123 Main Street, Downtown Apartment',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.home, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
                       ),
@@ -342,37 +318,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     TextFormField(
                       controller: _addressController,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Full Address *',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: 'e.g., 123 Main Street, City, State 12345',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.location_on, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
                       ),
@@ -391,37 +356,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       controller: _purchasePriceController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Purchase Price *',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: 'e.g., 500000',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.attach_money, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
                       ),
@@ -448,7 +402,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -463,12 +417,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   children: [
                     Text(
                       'Optional Information',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingMedium,
                     ),
                     
                     const SizedBox(height: 16),
@@ -478,37 +427,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       controller: _marketValueController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Current Market Value',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: 'e.g., 550000',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.trending_up, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
                       ),
@@ -531,13 +469,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: AppTheme.backgroundSecondary,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: AppTheme.borderLight),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: Colors.grey[600]),
+                            Icon(Icons.calendar_today, color: AppTheme.grey600),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -545,10 +483,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                                 children: [
                                   Text(
                                     'Purchase Date',
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
+                                    style: AppTheme.textSmall.copyWith(
                                       fontSize: 11,
-                                      color: Colors.grey,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -556,12 +492,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                                     _purchaseDate != null
                                         ? '${_purchaseDate!.day}/${_purchaseDate!.month}/${_purchaseDate!.year}'
                                         : 'Select purchase date',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 12,
+                                    style: AppTheme.textSmall.copyWith(
                                       color: _purchaseDate != null 
-                                          ? AppColors.textPrimary 
-                                          : Colors.grey[500],
+                                          ? AppTheme.textPrimary 
+                                          : AppTheme.grey500,
                                     ),
                                   ),
                                 ],
@@ -579,37 +513,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       controller: _monthlyRentController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Monthly Rent',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: 'e.g., 2500',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.home_work, size: 18),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
                       ),
@@ -626,42 +549,71 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     
                     const SizedBox(height: 12),
                     
+                    // Property Size
+                    TextFormField(
+                      controller: _sizeController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
+                      decoration: InputDecoration(
+                        labelText: 'Property Size (sq m)',
+                        labelStyle: AppTheme.formLabel,
+                        hintText: 'e.g., 120',
+                        hintStyle: AppTheme.formHint,
+                        prefixIcon: const Icon(Icons.square_foot, size: 18),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(6),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+                        ),
+                        filled: true,
+                        fillColor: AppTheme.backgroundSecondary,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        isDense: true,
+                      ),
+                      validator: (value) {
+                        if (value != null && value.trim().isNotEmpty) {
+                          final size = double.tryParse(value);
+                          if (size == null || size <= 0) {
+                            return 'Please enter a valid size';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    const SizedBox(height: 12),
                     
                     // Description
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 3,
                       textInputAction: TextInputAction.done,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                      ),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Description',
-                        labelStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                        ),
+                        labelStyle: AppTheme.formLabel,
                         hintText: '📝 Additional details about the property...',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.grey[400],
-                        ),
+                        hintStyle: AppTheme.formHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(6),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         alignLabelWithHint: true,
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         isDense: true,
@@ -688,8 +640,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _handleSaveProperty,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: AppTheme.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -701,16 +653,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                               width: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
                               ),
                             )
-                          : const Text(
+                          : Text(
                               'Add Property',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 14,
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
+                              style: AppTheme.buttonMedium.copyWith(
+                                color: AppTheme.background,
                               ),
                             ),
                     ),
@@ -730,20 +679,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       children: [
         Text(
           'Property Images (Optional)',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
+          style: AppTheme.headingSmall,
         ),
         const SizedBox(height: 6),
         Text(
           'Add up to 10 images of your property',
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
+          style: AppTheme.textSmall.copyWith(
             fontSize: 11,
-            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 12),
@@ -754,10 +696,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
               width: double.infinity,
               height: 120,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: AppTheme.grey100,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: Colors.grey[300]!,
+                  color: AppTheme.grey300,
                   style: BorderStyle.solid,
                 ),
               ),
@@ -767,15 +709,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   Icon(
                     Icons.add_photo_alternate,
                     size: 32,
-                    color: Colors.grey[600],
+                    color: AppTheme.grey600,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     'Tap to add images',
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 12,
-                      color: Colors.grey[600],
+                    style: AppTheme.textSmall.copyWith(
+                      color: AppTheme.grey600,
                     ),
                   ),
                 ],
@@ -799,10 +739,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                           height: 100,
                           margin: const EdgeInsets.only(right: 8),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: AppTheme.grey100,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Colors.grey[300]!,
+                              color: AppTheme.grey300,
                               style: BorderStyle.solid,
                             ),
                           ),
@@ -812,15 +752,14 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                               Icon(
                                 Icons.add,
                                 size: 24,
-                                color: Colors.grey[600],
+                                color: AppTheme.grey600,
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Add More',
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
+                                style: AppTheme.textSmall.copyWith(
                                   fontSize: 10,
-                                  color: Colors.grey[600],
+                                  color: AppTheme.grey600,
                                 ),
                               ),
                             ],
@@ -850,12 +789,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                                 width: 20,
                                 height: 20,
                                 decoration: const BoxDecoration(
-                                  color: Colors.red,
+                                  color: AppTheme.error,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.close,
-                                  color: Colors.white,
+                                  color: AppTheme.background,
                                   size: 12,
                                 ),
                               ),
@@ -870,10 +809,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
               const SizedBox(height: 8),
               Text(
                 '${_selectedImages.length} image(s) selected',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
+                style: AppTheme.textSmall.copyWith(
                   fontSize: 11,
-                  color: AppColors.textSecondary,
                 ),
               ),
             ],

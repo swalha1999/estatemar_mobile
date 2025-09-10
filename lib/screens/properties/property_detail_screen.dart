@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/user_property.dart';
 import '../../services/user_property_service.dart';
@@ -140,83 +141,182 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Property Header Card
+            // Property Header Card with Image
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                    spreadRadius: 0,
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(
-                          Icons.home,
-                          color: AppColors.primary,
-                          size: 24,
+                  // Property Image Section
+                  if (_property.imageUrls.isNotEmpty) ...[
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        color: Colors.grey[100],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        child: Image.file(
+                          File(_property.imageUrls.first),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.home,
+                                  color: Colors.grey,
+                                  size: 48,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
+                    ),
+                  ] else ...[
+                    // No image placeholder
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Colors.blue[50]!,
+                            Colors.indigo[50]!,
+                          ],
+                        ),
+                      ),
+                      child: const Center(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              _property.propertyName,
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
+                            Icon(
+                              Icons.home_outlined,
+                              color: Colors.blue,
+                              size: 48,
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 8),
                             Text(
-                              _property.address,
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
+                              'No Image Available',
+                              style: TextStyle(
+                                color: Colors.grey,
                                 fontSize: 14,
-                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      _property.propertyTypeString,
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 12,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+                  ],
+                  
+                  // Property Info Section
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                Icons.home,
+                                color: AppColors.primary,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _property.propertyName,
+                                    style: const TextStyle(
+                                      fontFamily: 'Montserrat',
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.textPrimary,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.location_on_outlined,
+                                        size: 16,
+                                        color: Colors.grey[600],
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          _property.address,
+                                          style: TextStyle(
+                                            fontFamily: 'Montserrat',
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            _property.propertyTypeString,
+                            style: const TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 12,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -231,70 +331,112 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                    spreadRadius: 0,
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Financial Overview',
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.account_balance_wallet_outlined,
+                          color: Colors.green[600],
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Financial Overview',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                   
                   const SizedBox(height: 20),
                   
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFinancialItem(
-                          'Purchase Price',
-                          _property.formattedPurchasePrice,
-                          Icons.shopping_cart,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey[200]!),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildModernFinancialItem(
+                                'Purchase Price',
+                                _property.formattedPurchasePrice,
+                                Icons.shopping_cart_outlined,
+                                Colors.blue,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildModernFinancialItem(
+                                'Market Value',
+                                _property.formattedMarketValue,
+                                Icons.trending_up_outlined,
+                                Colors.green,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Expanded(
-                        child: _buildFinancialItem(
-                          'Market Value',
-                          _property.formattedMarketValue,
-                          Icons.trending_up,
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildModernFinancialItem(
+                                'Profit/Loss',
+                                _property.formattedProfitLoss,
+                                Icons.account_balance_wallet_outlined,
+                                _property.profitLoss != null && _property.profitLoss! >= 0 
+                                    ? Colors.green 
+                                    : Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildModernFinancialItem(
+                                'Return %',
+                                _property.formattedProfitLossPercentage,
+                                Icons.percent_outlined,
+                                _property.profitLossPercentage != null && _property.profitLossPercentage! >= 0 
+                                    ? Colors.green 
+                                    : Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildFinancialItem(
-                          'Profit/Loss',
-                          _property.formattedProfitLoss,
-                          Icons.account_balance_wallet,
-                          isProfit: _property.profitLoss != null && _property.profitLoss! >= 0,
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildFinancialItem(
-                          'Return %',
-                          _property.formattedProfitLossPercentage,
-                          Icons.percent,
-                          isProfit: _property.profitLossPercentage != null && _property.profitLossPercentage! >= 0,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -302,92 +444,140 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             
             const SizedBox(height: 24),
             
-            // Rental Information Card
-            if (_property.monthlyRent != null || _property.annualAppreciationRate != null)
+            // Investment Analysis Card
+            if (_property.monthlyRent != null || _property.annualAppreciationRate != null) ...[
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: const Offset(0, 4),
+                      spreadRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 6,
+                      offset: const Offset(0, 1),
+                      spreadRadius: 0,
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Investment Analysis',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.purple[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.trending_up_outlined,
+                            color: Colors.purple[600],
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Investment Analysis',
+                          style: const TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ],
                     ),
                     
                     const SizedBox(height: 20),
                     
                     if (_property.monthlyRent != null) ...[
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildFinancialItem(
-                              'Monthly Rent',
-                              _property.formattedMonthlyRent,
-                              Icons.home_work,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildModernFinancialItem(
+                                    'Monthly Rent',
+                                    _property.formattedMonthlyRent,
+                                    Icons.home_work_outlined,
+                                    Colors.blue,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildModernFinancialItem(
+                                    'Annual Rent',
+                                    _property.formattedAnnualRent,
+                                    Icons.calendar_today_outlined,
+                                    Colors.orange,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                          Expanded(
-                            child: _buildFinancialItem(
-                              'Annual Rent',
-                              _property.formattedAnnualRent,
-                              Icons.calendar_today,
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildModernFinancialItem(
+                                    'Rental Yield',
+                                    _property.formattedRentalYield,
+                                    Icons.percent_outlined,
+                                    Colors.purple,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildModernFinancialItem(
+                                    'Total Return',
+                                    _property.formattedTotalReturnPercentage,
+                                    Icons.trending_up_outlined,
+                                    Colors.green,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildFinancialItem(
-                              'Rental Yield',
-                              _property.formattedRentalYield,
-                              Icons.percent,
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildFinancialItem(
-                              'Total Return',
-                              _property.formattedTotalReturnPercentage,
-                              Icons.trending_up,
-                            ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                     
                     if (_property.annualAppreciationRate != null && _property.monthlyRent == null) ...[
-                      _buildFinancialItem(
-                        'Annual Appreciation',
-                        '${_property.annualAppreciationRate!.toStringAsFixed(1)}%',
-                        Icons.trending_up,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: _buildModernFinancialItem(
+                          'Annual Appreciation',
+                          '${_property.annualAppreciationRate!.toStringAsFixed(1)}%',
+                          Icons.trending_up_outlined,
+                          Colors.green,
+                        ),
                       ),
                     ],
                   ],
                 ),
               ),
-            
-            if (_property.monthlyRent != null || _property.annualAppreciationRate != null)
               const SizedBox(height: 24),
+            ],
             
             // Property Details Card
             Container(
@@ -395,26 +585,50 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 1),
+                    spreadRadius: 0,
                   ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Property Details',
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          Icons.info_outlined,
+                          color: Colors.blue[600],
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Property Details',
+                        style: const TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                   
                   const SizedBox(height: 20),
@@ -454,7 +668,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               ),
             ),
             
-            const SizedBox(height: 100), // Add space for fixed bottom buttons
+            const SizedBox(height: 24), // Safe spacing for bottom buttons
           ],
         ),
       ),
@@ -526,77 +740,110 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildFinancialItem(
+  Widget _buildModernFinancialItem(
     String label,
     String value,
-    IconData icon, {
-    bool isProfit = false,
-  }) {
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: AppColors.textSecondary),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 12,
-                color: AppColors.textSecondary,
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Text(
           value,
           style: TextStyle(
             fontFamily: 'Montserrat',
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: isProfit 
-                ? (value.startsWith('+') ? Colors.green : Colors.red)
-                : AppColors.textPrimary,
+            color: color,
+            height: 1.2,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
+
   Widget _buildDetailRow(String label, String value, IconData icon) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.blue[50],
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(icon, size: 16, color: Colors.blue[600]),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontFamily: 'Montserrat',
+                    fontSize: 14,
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

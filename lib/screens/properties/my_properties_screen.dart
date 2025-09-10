@@ -5,8 +5,7 @@ import '../../models/listing_request.dart';
 import '../../services/auth_service.dart';
 import '../../services/user_property_service.dart';
 import '../../services/listing_request_service.dart';
-import '../../theme/colors.dart';
-import '../../theme/text_styles.dart';
+import '../../theme/app_theme.dart';
 import 'add_property_screen.dart';
 import 'property_detail_screen.dart';
 
@@ -73,7 +72,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load properties: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -127,7 +126,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.error),
             child: const Text('Delete'),
           ),
         ],
@@ -140,7 +139,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Property deleted successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppTheme.success,
           ),
         );
         _loadProperties(); // Refresh properties list
@@ -148,7 +147,7 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Failed to delete property'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -168,13 +167,13 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.grey[400],
+                color: AppTheme.grey400,
               ),
               const SizedBox(height: 16),
               Text(
                 'Please login to view your properties',
-                style: AppTextStyles.headlineSmall.copyWith(
-                  color: Colors.grey[600],
+                style: AppTheme.headingMedium.copyWith(
+                  color: AppTheme.grey600,
                 ),
               ),
             ],
@@ -184,11 +183,9 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
         title: const Text('My Properties'),
-        backgroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
             onPressed: _navigateToAddProperty,
@@ -231,28 +228,28 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppTheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(60),
               ),
               child: Icon(
                 Icons.home_outlined,
                 size: 60,
-                color: AppColors.primary,
+                color: AppTheme.primary,
               ),
             ),
             const SizedBox(height: 24),
             Text(
               'No Properties Yet',
-              style: AppTextStyles.headlineSmall.copyWith(
+              style: AppTheme.headingMedium.copyWith(
                 fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+                color: AppTheme.textPrimary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               'Start building your property portfolio by adding your first property.',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: AppTheme.textMedium.copyWith(
+                color: AppTheme.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -262,8 +259,8 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
               icon: const Icon(Icons.add),
               label: const Text('Add Your First Property'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.primary,
+                foregroundColor: AppTheme.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -283,11 +280,11 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+                  color: AppTheme.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppTheme.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -298,13 +295,13 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
         children: [
           Row(
             children: [
-              Icon(Icons.analytics, color: AppColors.primary, size: 24),
+              Icon(Icons.analytics, color: AppTheme.primary, size: 24),
               const SizedBox(width: 8),
               Text(
                 'Portfolio Analytics',
-                style: AppTextStyles.titleMedium.copyWith(
+                style: AppTheme.textLarge.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: AppTheme.textPrimary,
                 ),
               ),
             ],
@@ -368,12 +365,12 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
       children: [
         Row(
           children: [
-            Icon(icon, size: 16, color: AppColors.textSecondary),
+            Icon(icon, size: 16, color: AppTheme.textSecondary),
             const SizedBox(width: 4),
             Text(
               label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+              style: AppTheme.textSmall.copyWith(
+                color: AppTheme.textSecondary,
               ),
             ),
           ],
@@ -381,11 +378,11 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
         const SizedBox(height: 4),
         Text(
           value,
-          style: AppTextStyles.titleMedium.copyWith(
+          style: AppTheme.textLarge.copyWith(
             fontWeight: FontWeight.bold,
             color: isProfit 
-                ? (value.startsWith('+') ? Colors.green : Colors.red)
-                : AppColors.textPrimary,
+                ? (value.startsWith('+') ? AppTheme.success : AppTheme.error)
+                : AppTheme.textPrimary,
           ),
         ),
       ],
@@ -398,9 +395,9 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
       children: [
         Text(
           'Your Properties',
-          style: AppTextStyles.titleLarge.copyWith(
+          style: AppTheme.headingLarge.copyWith(
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: AppTheme.textPrimary,
           ),
         ),
         const SizedBox(height: 16),
@@ -421,263 +418,569 @@ class _MyPropertiesScreenState extends State<MyPropertiesScreen> {
     final listingRequest = _getListingRequestForProperty(property.id);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.background,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: AppTheme.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 1),
+            spreadRadius: 0,
           ),
         ],
       ),
       child: InkWell(
         onTap: () => _navigateToPropertyDetail(property),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section
+            if (property.imageUrls.isNotEmpty) ...[
+              Container(
+                height: 180,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  color: AppTheme.grey100,
+                ),
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: Image.file(
+                        File(property.imageUrls.first),
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: AppTheme.grey200,
+                            child: const Center(
+                              child: Icon(
+                                Icons.home,
+                                color: AppTheme.textSecondary,
+                                size: 48,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Gradient overlay
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      height: 60,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppTheme.black.withOpacity(0.3),
+                              AppTheme.background,
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Status badges
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      right: 12,
+                      child: Row(
+                        children: [
+                          if (property.isForSale) ...[
+                            _buildStatusBadge('FOR SALE', AppTheme.orange, Icons.sell),
+                            const SizedBox(width: 8),
+                          ],
+                          if (property.isForRent) ...[
+                            _buildStatusBadge('FOR RENT', AppTheme.blue, Icons.home_work),
+                            const SizedBox(width: 8),
+                          ],
+                          if (listingRequest != null) ...[
+                            _buildListingStatusBadge(listingRequest),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // Menu button
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'delete') {
+                              _deleteProperty(property);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline, color: AppTheme.error, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Delete Property'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: const Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Icon(
+                              Icons.more_vert,
+                              color: AppTheme.textSecondary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // No image placeholder with modern design
+              Container(
+                height: 180,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppTheme.blueLight,
+                      AppTheme.indigoLight,
+                    ],
+                  ),
+                ),
+                child: Stack(
+                  children: [
+                    // Background pattern
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _PropertyPlaceholderPainter(),
+                      ),
+                    ),
+                    // Main content
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppTheme.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.black.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.home_outlined,
+                              color: AppTheme.blue,
+                              size: 48,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Property Image',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.blue,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'No image available',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: 12,
+                              color: AppTheme.grey600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Status badges (same as with image)
+                    Positioned(
+                      top: 12,
+                      left: 12,
+                      right: 12,
+                      child: Row(
+                        children: [
+                          if (property.isForSale) ...[
+                            _buildStatusBadge('FOR SALE', AppTheme.orange, Icons.sell),
+                            const SizedBox(width: 8),
+                          ],
+                          if (property.isForRent) ...[
+                            _buildStatusBadge('FOR RENT', AppTheme.blue, Icons.home_work),
+                            const SizedBox(width: 8),
+                          ],
+                          if (listingRequest != null) ...[
+                            _buildListingStatusBadge(listingRequest),
+                          ],
+                        ],
+                      ),
+                    ),
+                    // Menu button (same as with image)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'delete') {
+                              _deleteProperty(property);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline, color: AppTheme.error, size: 18),
+                                  SizedBox(width: 8),
+                                  Text('Delete Property'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: const Padding(
+                            padding: EdgeInsets.all(8),
+                            child: Icon(
+                              Icons.more_vert,
+                              color: AppTheme.textSecondary,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            
+            // Content Section
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  // Property Name
+                  Text(
+                    property.propertyName,
+                    style: const TextStyle(
+                      fontFamily: 'Montserrat',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary,
+                      height: 1.2,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  // Address
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on_outlined,
+                        size: 16,
+                        color: AppTheme.grey600,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.address,
+                          style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            fontSize: 14,
+                            color: AppTheme.grey600,
+                            height: 1.3,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Financial Info Grid
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.grey50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.grey200),
+                    ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                property.propertyName,
-                                style: AppTextStyles.titleMedium.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
+                              child: _buildModernPropertyInfo(
+                                'Purchase Price',
+                                property.formattedPurchasePrice,
+                                Icons.shopping_cart_outlined,
+                                AppTheme.blue,
                               ),
                             ),
-                            if (property.isForSale) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.orange[300]!),
-                                ),
-                                child: Text(
-                                  'FOR SALE',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.orange[800],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10,
-                                  ),
-                                ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildModernPropertyInfo(
+                                'Market Value',
+                                property.formattedMarketValue,
+                                Icons.trending_up_outlined,
+                                AppTheme.success,
                               ),
-                            ],
-                            if (property.isForRent) ...[
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[100],
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.blue[300]!),
-                                ),
-                                child: Text(
-                                  'FOR RENT',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.blue[800],
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ),
-                            ],
+                            ),
                           ],
                         ),
-                        if (listingRequest != null) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: listingRequest.statusColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: listingRequest.statusColor.withOpacity(0.3)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  listingRequest.status == ListingRequestStatus.pending
-                                      ? Icons.hourglass_empty
-                                      : listingRequest.status == ListingRequestStatus.approved
-                                          ? Icons.check_circle
-                                          : Icons.cancel,
-                                  size: 12,
-                                  color: listingRequest.statusColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Listing: ${listingRequest.statusDisplayName}',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: listingRequest.statusColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        // Property Image
-                        if (property.imageUrls.isNotEmpty) ...[
-                          Container(
-                            height: 120,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              color: Colors.grey[200],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                File(property.imageUrls.first),
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    color: Colors.grey[300],
-                                    child: const Icon(
-                                      Icons.image_not_supported,
-                                      color: Colors.grey,
-                                      size: 40,
-                                    ),
-                                  );
-                                },
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildModernPropertyInfo(
+                                'Profit/Loss',
+                                property.formattedProfitLoss,
+                                Icons.account_balance_wallet_outlined,
+                                property.profitLoss != null && property.profitLoss! >= 0 
+                                    ? AppTheme.success 
+                                    : AppTheme.error,
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                        ],
-                        Text(
-                          property.address,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildModernPropertyInfo(
+                                'Rental Yield',
+                                property.formattedRentalYield,
+                                Icons.percent_outlined,
+                                AppTheme.purple,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  PopupMenuButton<String>(
-                    onSelected: (value) {
-                      if (value == 'delete') {
-                        _deleteProperty(property);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, color: Colors.red, size: 18),
-                            SizedBox(width: 8),
-                            Text('Delete'),
-                          ],
-                        ),
-                      ),
-                    ],
-                    child: Icon(
-                      Icons.more_vert,
-                      color: Colors.grey[600],
-                    ),
-                  ),
                 ],
               ),
-              
-              const SizedBox(height: 16),
-              
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildPropertyInfo(
-                      'Purchase Price',
-                      property.formattedPurchasePrice,
-                      Icons.shopping_cart,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildPropertyInfo(
-                      'Market Value',
-                      property.formattedMarketValue,
-                      Icons.trending_up,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 12),
-              
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildPropertyInfo(
-                      'Profit/Loss',
-                      property.formattedProfitLoss,
-                      Icons.account_balance_wallet,
-                      isProfit: property.profitLoss != null && property.profitLoss! >= 0,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildPropertyInfo(
-                      'Rental Yield',
-                      property.formattedRentalYield,
-                      Icons.percent,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPropertyInfo(
+  Widget _buildStatusBadge(String text, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+                  color: AppTheme.background,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+                  color: AppTheme.background,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListingStatusBadge(ListingRequest request) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: request.statusColor.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: request.statusColor.withOpacity(0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            request.status == ListingRequestStatus.pending
+                ? Icons.hourglass_empty
+                : request.status == ListingRequestStatus.approved
+                    ? Icons.check_circle
+                    : request.status == ListingRequestStatus.cancelled
+                        ? Icons.cancel_outlined
+                        : Icons.cancel,
+            size: 12,
+                  color: AppTheme.background,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            request.statusDisplayName,
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+                  color: AppTheme.background,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernPropertyInfo(
     String label,
     String value,
-    IconData icon, {
-    bool isProfit = false,
-  }) {
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 14, color: AppColors.textSecondary),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                size: 16,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  color: AppTheme.grey600,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 8),
         Text(
           value,
-          style: AppTextStyles.bodyMedium.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isProfit 
-                ? (value.startsWith('+') ? Colors.green : Colors.red)
-                : AppColors.textPrimary,
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+            height: 1.2,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
+
+}
+
+class _PropertyPlaceholderPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Add some diagonal lines for subtle texture
+    final linePaint = Paint()
+      ..color = AppTheme.blue.withOpacity(0.15)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
+    
+    for (int i = 0; i < 5; i++) {
+      final startY = (size.height / 5) * i;
+      final endX = size.width;
+      final endY = startY + (size.height / 3);
+      
+      canvas.drawLine(
+        Offset(0, startY),
+        Offset(endX, endY),
+        linePaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/property.dart';
-import '../theme/colors.dart';
+import '../theme/app_theme.dart';
 import 'roi_display_widget.dart';
 import 'safe_image.dart';
 
@@ -29,10 +29,10 @@ class _PropertyCardState extends State<PropertyCard> {
   Widget build(BuildContext context) {
     final images = widget.property.imageUrls;
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.white,
+      color: AppTheme.background,
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: widget.onTap,
@@ -90,8 +90,8 @@ class _PropertyCardState extends State<PropertyCard> {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                           color: i == _currentImage
-                                              ? AppColors.primary
-                                              : Colors.white.withOpacity(0.7),
+                                              ? AppTheme.primary
+                                              : AppTheme.white.withOpacity(0.7),
                                         ),
                                       );
                                     }),
@@ -100,8 +100,8 @@ class _PropertyCardState extends State<PropertyCard> {
                             ],
                           )
                         : Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.image, size: 48, color: Colors.white),
+                            color: AppTheme.grey300,
+                            child: const Icon(Icons.image, size: 48, color: AppTheme.white),
                           ),
                   ),
                 ),
@@ -109,7 +109,7 @@ class _PropertyCardState extends State<PropertyCard> {
                   top: 12,
                   right: 12,
                   child: Material(
-                    color: Colors.white.withOpacity(0.8),
+                    color: AppTheme.white.withOpacity(0.8),
                     shape: const CircleBorder(),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 250),
@@ -118,7 +118,7 @@ class _PropertyCardState extends State<PropertyCard> {
                         key: ValueKey(widget.isFavorite),
                         icon: Icon(
                           widget.isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: widget.isFavorite ? Colors.red : Colors.grey,
+                          color: widget.isFavorite ? AppTheme.error : AppTheme.textSecondary,
                         ),
                         onPressed: widget.onFavoritePressed,
                         tooltip: widget.isFavorite ? 'Remove from favorites' : 'Add to favorites',
@@ -129,50 +129,39 @@ class _PropertyCardState extends State<PropertyCard> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.property.title,
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTheme.headingLarge,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Text(
                     widget.property.formattedPrice,
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 14,
-                      color: AppColors.primary,
+                    style: AppTheme.textMedium.copyWith(
+                      color: AppTheme.primary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                      const Icon(Icons.location_on, size: 14, color: AppTheme.textSecondary),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           widget.property.location,
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
+                          style: AppTheme.textSmall,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       _buildFeature(Icons.bed, '${widget.property.bedrooms}'),
@@ -194,14 +183,12 @@ class _PropertyCardState extends State<PropertyCard> {
   Widget _buildFeature(IconData icon, String label) {
     return Row(
       children: [
-        Icon(icon, size: 12, color: Colors.grey[600]),
+        Icon(icon, size: 12, color: AppTheme.grey600),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
+          style: AppTheme.textSmall.copyWith(
             fontSize: 11,
-            color: Colors.grey,
           ),
         ),
       ],

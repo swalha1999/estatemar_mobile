@@ -117,6 +117,29 @@ class _SellScreenState extends State<SellScreen> {
     }
   }
 
+  Future<void> _removeListingRequest(String requestId) async {
+    try {
+      final success = await ListingRequestService.deleteListingRequest(requestId);
+      
+      if (mounted) {
+        if (success) {
+          _showSuccessSnackBar('Listing request removed successfully');
+          // Clear selection and refresh the listing requests
+          setState(() {
+            _selectedListingRequest = null;
+          });
+          await _loadUserProperties();
+        } else {
+          _showErrorSnackBar('Failed to remove listing request');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorSnackBar('Error removing listing request: $e');
+      }
+    }
+  }
+
   Widget _buildCancelButton() {
     return Container(
       width: double.infinity,
@@ -135,6 +158,34 @@ class _SellScreenState extends State<SellScreen> {
         icon: const Icon(Icons.close, size: 18),
         label: const Text(
           'Cancel Selected Request',
+          style: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRemoveButton() {
+    return Container(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton.icon(
+        onPressed: () => _showRemoveConfirmation(_selectedListingRequest!),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.grey[50],
+          foregroundColor: Colors.grey[600],
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: Colors.grey[300]!),
+          ),
+        ),
+        icon: const Icon(Icons.delete_outline, size: 18),
+        label: const Text(
+          'Remove Selected Request',
           style: TextStyle(
             fontFamily: 'Montserrat',
             fontSize: 14,
@@ -183,6 +234,57 @@ class _SellScreenState extends State<SellScreen> {
               },
               child: const Text(
                 'Cancel Request',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showRemoveConfirmation(ListingRequest request) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            'Remove Listing Request',
+            style: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to permanently remove the cancelled listing request for "${request.propertyName}"? This action cannot be undone.',
+            style: const TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Keep Request',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.grey,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _removeListingRequest(request.id);
+              },
+              child: const Text(
+                'Remove Request',
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   color: Colors.red,
@@ -501,10 +603,12 @@ class _SellScreenState extends State<SellScreen> {
           ),
           const SizedBox(height: 16),
           ..._listingRequests.map((request) => _buildListingRequestItem(request)),
-          if (_selectedListingRequest != null && 
-              _selectedListingRequest!.status == ListingRequestStatus.pending) ...[
+          if (_selectedListingRequest != null) ...[
             const SizedBox(height: 16),
-            _buildCancelButton(),
+            if (_selectedListingRequest!.status == ListingRequestStatus.pending)
+              _buildCancelButton()
+            else if (_selectedListingRequest!.status == ListingRequestStatus.cancelled)
+              _buildRemoveButton(),
           ],
         ],
       ),
@@ -513,12 +617,16 @@ class _SellScreenState extends State<SellScreen> {
 
   Widget _buildListingRequestItem(ListingRequest request) {
     final isSelected = _selectedListingRequest?.id == request.id;
-    final canCancel = request.status == ListingRequestStatus.pending;
     
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedListingRequest = request;
+          // If the same item is tapped while selected, unselect it
+          if (isSelected) {
+            _selectedListingRequest = null;
+          } else {
+            _selectedListingRequest = request;
+          }
         });
       },
       child: Container(
@@ -609,11 +717,18 @@ class _SellScreenState extends State<SellScreen> {
                 ],
               ),
             ),
-            if (isSelected && canCancel)
-              Icon(
-                Icons.check_circle,
-                color: AppColors.primary,
-                size: 20,
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
               ),
           ],
         ),
@@ -676,10 +791,16 @@ class _SellScreenState extends State<SellScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedProperty = property;
-          // Pre-fill asking price with market value if available
-          if (property.marketValue != null && property.marketValue! > 0) {
-            _askingPriceController.text = _formatNumber(property.marketValue!.toInt());
+          // If the same property is tapped while selected, unselect it
+          if (isSelected) {
+            _selectedProperty = null;
+            _askingPriceController.clear();
+          } else {
+            _selectedProperty = property;
+            // Pre-fill asking price with market value if available
+            if (property.marketValue != null && property.marketValue! > 0) {
+              _askingPriceController.text = _formatNumber(property.marketValue!.toInt());
+            }
           }
         });
       },
@@ -741,6 +862,19 @@ class _SellScreenState extends State<SellScreen> {
                 ],
               ),
             ),
+            if (isSelected)
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+              ),
           ],
         ),
       ),

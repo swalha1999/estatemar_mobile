@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/property.dart';
 import '../../models/user_property.dart';
 import '../../services/user_property_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 
 class EditPropertyScreen extends StatefulWidget {
   final UserProperty property;
@@ -24,6 +24,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   final _marketValueController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _monthlyRentController = TextEditingController();
+  final _sizeController = TextEditingController();
   
   DateTime? _purchaseDate;
   bool _isLoading = false;
@@ -49,6 +50,9 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     _monthlyRentController.text = widget.property.monthlyRent != null 
         ? _formatNumber(widget.property.monthlyRent!.toInt()) 
         : '';
+    _sizeController.text = widget.property.area != null 
+        ? widget.property.area!.toInt().toString() 
+        : '';
     _purchaseDate = widget.property.purchaseDate;
   }
 
@@ -60,6 +64,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     _marketValueController.dispose();
     _descriptionController.dispose();
     _monthlyRentController.dispose();
+    _sizeController.dispose();
     super.dispose();
   }
 
@@ -139,6 +144,9 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
         propertyType: widget.property.propertyType ?? PropertyType.house,
         purchaseDate: _purchaseDate,
         monthlyRent: _parseFormattedNumber(_monthlyRentController.text),
+        area: _sizeController.text.trim().isNotEmpty 
+            ? double.tryParse(_sizeController.text.trim())
+            : null,
         annualAppreciationRate: null,
         updatedAt: DateTime.now(),
       );
@@ -148,9 +156,9 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
       if (success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Property updated successfully!'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: const Text('Property updated successfully!'),
+              backgroundColor: AppTheme.success,
             ),
           );
           Navigator.pop(context, true); // Return true to indicate successful update
@@ -158,9 +166,9 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to update property'),
-              backgroundColor: Colors.red,
+            SnackBar(
+              content: const Text('Failed to update property'),
+              backgroundColor: AppTheme.error,
             ),
           );
         }
@@ -170,7 +178,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -197,19 +205,9 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text(
-          'Edit Property',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        title: const Text('Edit Property'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
@@ -227,11 +225,11 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppTheme.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -242,12 +240,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                   children: [
                     Text(
                       'Required Information',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingLarge,
                     ),
                     
                     const SizedBox(height: 20),
@@ -256,23 +249,26 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                     TextFormField(
                       controller: _propertyNameController,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Property Name/Address *',
                         hintText: 'e.g., 123 Main Street, Downtown Apartment',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.home),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -288,23 +284,26 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                     TextFormField(
                       controller: _addressController,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Full Address *',
                         hintText: 'e.g., 123 Main Street, City, State 12345',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.location_on),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -321,23 +320,26 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       controller: _purchasePriceController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Purchase Price *',
                         hintText: 'e.g., 500000',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.attach_money),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -362,11 +364,11 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppTheme.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -377,12 +379,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                   children: [
                     Text(
                       'Optional Information',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingLarge,
                     ),
                     
                     const SizedBox(height: 20),
@@ -392,23 +389,26 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       controller: _marketValueController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Current Market Value',
                         hintText: 'e.g., 550000',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.trending_up),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
@@ -429,13 +429,13 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: AppTheme.backgroundSecondary,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: AppTheme.borderLight),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: Colors.grey[600]),
+                            Icon(Icons.calendar_today, color: AppTheme.grey600),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -443,23 +443,17 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                                 children: [
                                   Text(
                                     'Purchase Date',
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+                                    style: AppTheme.textSmall,
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     _purchaseDate != null
                                         ? '${_purchaseDate!.day}/${_purchaseDate!.month}/${_purchaseDate!.year}'
                                         : 'Select purchase date',
-                                    style: TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 14,
+                                    style: AppTheme.textMedium.copyWith(
                                       color: _purchaseDate != null 
-                                          ? AppColors.textPrimary 
-                                          : Colors.grey[500],
+                                          ? AppTheme.textPrimary 
+                                          : AppTheme.grey500,
                                     ),
                                   ),
                                 ],
@@ -477,23 +471,26 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       controller: _monthlyRentController,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Monthly Rent',
                         hintText: 'e.g., 2500',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         prefixIcon: const Icon(Icons.home_work),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value != null && value.trim().isNotEmpty) {
@@ -508,28 +505,69 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                     
                     const SizedBox(height: 16),
                     
+                    // Property Size
+                    TextFormField(
+                      controller: _sizeController,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
+                      decoration: InputDecoration(
+                        labelText: 'Property Size (sq m)',
+                        hintText: 'e.g., 120',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
+                        prefixIcon: const Icon(Icons.square_foot),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: AppTheme.backgroundSecondary,
+                      ),
+                      validator: (value) {
+                        if (value != null && value.trim().isNotEmpty) {
+                          final size = double.tryParse(value);
+                          if (size == null || size <= 0) {
+                            return 'Please enter a valid size';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    
+                    const SizedBox(height: 16),
                     
                     // Description
                     TextFormField(
                       controller: _descriptionController,
                       maxLines: 3,
                       textInputAction: TextInputAction.done,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Description',
                         hintText: '📝 Additional details about the property...',
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                         alignLabelWithHint: true,
                       ),
                     ),
@@ -545,10 +583,10 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppTheme.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -561,8 +599,8 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleSaveProperty,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.primary,
+                foregroundColor: AppTheme.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -574,17 +612,12 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
                       ),
                     )
                   : const Text(
                       'Update Property',
-                      style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTheme.buttonMedium,
                     ),
             ),
           ),
