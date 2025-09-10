@@ -260,39 +260,63 @@ class _SellScreenState extends State<SellScreen> {
               fontWeight: FontWeight.w600,
             ),
           ),
-          content: Text(
-            'Are you sure you want to permanently remove the cancelled listing request for "${request.propertyName}"? This action cannot be undone.',
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 14,
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Are you sure you want to permanently remove the cancelled listing request for "${request.propertyName}"? This action cannot be undone.',
+                style: const TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: Colors.grey[300]!),
+                        foregroundColor: Colors.grey[700],
+                      ),
+                      child: const Text(
+                        'Keep',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        _removeListingRequest(request.id);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        backgroundColor: Colors.red[600],
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        'Remove',
+                        style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Keep Request',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _removeListingRequest(request.id);
-              },
-              child: const Text(
-                'Remove Request',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
         );
       },
     );

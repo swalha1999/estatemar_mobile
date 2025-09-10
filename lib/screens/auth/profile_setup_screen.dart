@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 
 class ProfileSetupScreen extends StatefulWidget {
   final User user;
@@ -53,7 +53,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Profile setup complete!'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppTheme.success,
             ),
           );
           widget.onSetupComplete?.call();
@@ -65,7 +65,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result.errorMessage ?? 'Profile setup failed'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.error,
             ),
           );
         }
@@ -75,7 +75,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Profile setup failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -89,13 +89,17 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.background,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPrimary, size: 20),
+        ),
+        title: Text(
+          'Profile Setup',
+          style: AppTheme.headingMedium,
         ),
       ),
       body: SafeArea(
@@ -110,36 +114,43 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.primary,
+                            AppTheme.primary.withOpacity(0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.person_add,
-                        color: Colors.white,
-                        size: 40,
+                        Icons.person_add_outlined,
+                        color: AppTheme.white,
+                        size: 48,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     Text(
                       'Complete Your Profile',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingXLarge,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'Tell us a bit about yourself to get started',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
+                      style: AppTheme.textLarge.copyWith(
+                        color: AppTheme.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -150,37 +161,51 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 
                 // Email Display (Read-only)
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!),
+                    color: AppTheme.background,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.borderLight),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.email, color: Colors.grey[600], size: 20),
-                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryLight,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.email_outlined,
+                          color: AppTheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Email',
-                              style: TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 12,
-                                color: Colors.grey[600],
+                              style: AppTheme.textSmall.copyWith(
+                                color: AppTheme.textSecondary,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: 4),
                             Text(
                               widget.user.email,
-                              style: const TextStyle(
-                                fontFamily: 'Montserrat',
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w500,
+                              style: AppTheme.textMedium.copyWith(
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
@@ -196,23 +221,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                 TextFormField(
                   controller: _firstNameController,
                   textInputAction: TextInputAction.next,
+                  style: AppTheme.formInput,
                   decoration: InputDecoration(
                     labelText: 'First Name *',
                     hintText: 'Enter your first name',
-                    prefixIcon: const Icon(Icons.person_outline),
+                    labelStyle: AppTheme.formLabel,
+                    hintStyle: AppTheme.formHint,
+                    prefixIcon: const Icon(
+                      Icons.person_outline,
+                      color: AppTheme.primary,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.borderLight),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: AppTheme.background,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -232,23 +263,29 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   controller: _lastNameController,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleSaveProfile(),
+                  style: AppTheme.formInput,
                   decoration: InputDecoration(
                     labelText: 'Last Name *',
                     hintText: 'Enter your last name',
-                    prefixIcon: const Icon(Icons.person_outline),
+                    labelStyle: AppTheme.formLabel,
+                    hintStyle: AppTheme.formHint,
+                    prefixIcon: const Icon(
+                      Icons.person_outline,
+                      color: AppTheme.primary,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.borderLight),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: AppTheme.background,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -269,10 +306,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleSaveProfile,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: AppTheme.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
@@ -282,17 +319,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
                             ),
                           )
-                        : const Text(
+                        : Text(
                             'Complete Setup',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTheme.buttonLarge.copyWith(color: AppTheme.white),
                           ),
                   ),
                 ),

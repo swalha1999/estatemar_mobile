@@ -7,6 +7,7 @@ import 'profile/profile_screen.dart';
 import 'auth/login_screen.dart';
 import '../services/auth_service.dart';
 import '../widgets/custom_bottom_navigation_bar.dart';
+import '../theme/app_theme.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -120,6 +121,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundSecondary,
       body: _buildPage(_currentIndex),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _currentIndex,

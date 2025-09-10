@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/user.dart';
 import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -95,26 +95,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.grey[400],
+                color: AppTheme.grey400,
               ),
               const SizedBox(height: 16),
               Text(
                 'No user logged in',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[600],
-                ),
+                style: AppTheme.headingLarge.copyWith(color: AppTheme.grey600),
               ),
               const SizedBox(height: 8),
               Text(
                 'Please login to view your profile',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
+                style: AppTheme.textMedium.copyWith(color: AppTheme.grey500),
               ),
             ],
           ),
@@ -123,21 +114,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.background,
         elevation: 0,
+        title: Text('Profile', style: AppTheme.headingMedium),
         actions: [
           IconButton(
             onPressed: _navigateToEditProfile,
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.edit, color: AppTheme.textPrimary),
           ),
         ],
       ),
@@ -150,11 +135,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.background,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: AppTheme.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -167,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(40),
                     ),
                     child: Center(
@@ -175,12 +160,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _currentUser!.firstName.isNotEmpty && _currentUser!.lastName.isNotEmpty
                             ? '${_currentUser!.firstName[0]}${_currentUser!.lastName[0]}'
                             : _currentUser!.email[0].toUpperCase(),
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 24,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: AppTheme.textXLarge.copyWith(color: AppTheme.white, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -192,12 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _currentUser!.fullName.isNotEmpty 
                         ? _currentUser!.fullName 
                         : 'Complete your profile',
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTheme.headingXLarge,
                     textAlign: TextAlign.center,
                   ),
                   
@@ -206,11 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Email
                   Text(
                     _currentUser!.email,
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
+                    style: AppTheme.textMedium.copyWith(color: AppTheme.textSecondary),
                     textAlign: TextAlign.center,
                   ),
                   
@@ -222,17 +193,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: OutlinedButton.icon(
                       onPressed: _navigateToEditProfile,
                       icon: const Icon(Icons.edit, size: 18),
-                      label: const Text(
-                        'Edit Profile',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      label: Text('Edit Profile', style: AppTheme.buttonMedium.copyWith(color: AppTheme.primary)),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primary,
-                        side: const BorderSide(color: AppColors.primary),
+                        foregroundColor: AppTheme.primary,
+                        side: const BorderSide(color: AppTheme.primary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -251,11 +215,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.background,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: AppTheme.black.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -266,12 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Text(
                     'Account Information',
-                    style: const TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: AppTheme.textLarge.copyWith(fontWeight: FontWeight.bold),
                   ),
                   
                   const SizedBox(height: 16),
@@ -322,17 +281,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: ElevatedButton.icon(
                 onPressed: _handleLogout,
                 icon: const Icon(Icons.logout, size: 18),
-                label: const Text(
-                  'Logout',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                label: Text('Logout', style: AppTheme.buttonMedium.copyWith(color: AppTheme.error)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red[50],
-                  foregroundColor: Colors.red[700],
+                  backgroundColor: AppTheme.errorLight,
+                  foregroundColor: AppTheme.error,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -357,7 +309,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Icon(
           icon,
           size: 20,
-          color: AppColors.textSecondary,
+          color: AppTheme.textSecondary,
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -366,21 +318,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppTheme.textSmall.copyWith(color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 14,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTheme.textMedium,
               ),
             ],
           ),

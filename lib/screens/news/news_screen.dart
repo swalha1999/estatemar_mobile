@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
@@ -44,18 +45,11 @@ class NewsScreen extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text(
-          'Real Estate News & Tips',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        title: Text('Real Estate News & Tips', style: AppTheme.headingMedium),
+        backgroundColor: AppTheme.background,
+        elevation: 0,
       ),
       body: ListView.separated(
         padding: const EdgeInsets.all(16),

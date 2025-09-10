@@ -207,11 +207,13 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text('Edit Property'),
+        backgroundColor: AppTheme.background,
+        elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios, size: 20, color: AppTheme.textPrimary),
         ),
+        title: Text('Edit Property', style: AppTheme.headingMedium),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -255,7 +257,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         hintText: 'e.g., 123 Main Street, Downtown Apartment',
                         labelStyle: AppTheme.formLabel,
                         hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.home),
+                        prefixIcon: const Icon(Icons.home, color: AppTheme.primary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -290,7 +292,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         hintText: 'e.g., 123 Main Street, City, State 12345',
                         labelStyle: AppTheme.formLabel,
                         hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.location_on),
+                        prefixIcon: const Icon(Icons.location_on, color: AppTheme.primary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -326,7 +328,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         hintText: 'e.g., 500000',
                         labelStyle: AppTheme.formLabel,
                         hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.attach_money),
+                        prefixIcon: const Icon(Icons.attach_money, color: AppTheme.primary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -435,7 +437,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.calendar_today, color: AppTheme.grey600),
+                            Icon(Icons.calendar_today, color: AppTheme.primary),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
@@ -477,7 +479,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         hintText: 'e.g., 2500',
                         labelStyle: AppTheme.formLabel,
                         hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.home_work),
+                        prefixIcon: const Icon(Icons.home_work, color: AppTheme.primary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -516,7 +518,7 @@ class _EditPropertyScreenState extends State<EditPropertyScreen> {
                         hintText: 'e.g., 120',
                         labelStyle: AppTheme.formLabel,
                         hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.square_foot),
+                        prefixIcon: const Icon(Icons.square_foot, color: AppTheme.primary),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

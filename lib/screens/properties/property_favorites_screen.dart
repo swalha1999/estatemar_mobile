@@ -3,7 +3,7 @@ import '../../widgets/property_card.dart';
 import '../../services/property_service.dart';
 import '../../screens/properties/property_view_screen.dart';
 import '../../models/property.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -72,6 +72,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundSecondary,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,12 +81,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               child: Text(
                 'Favorite Properties',
-                style: const TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTheme.headingXLarge,
               ),
             ),
             Expanded(
@@ -95,28 +91,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ? Center(
                           child: Text(
                             'Failed to load favorites: $_error',
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 14,
-                              color: Colors.red,
-                            ),
+                            style: AppTheme.textMedium.copyWith(color: AppTheme.error),
                           ),
                         )
                       : _favorites.isEmpty
                           ? const Center(
                               child: Text(
                                 'No favorite properties yet.',
-                                style: TextStyle(
-                                  fontFamily: 'Montserrat',
-                                  fontSize: 16,
-                                  color: Colors.grey,
-                                ),
+                                style: AppTheme.textLarge,
                               ),
                             )
                           : AnimatedList(
                               key: _listKey,
                               initialItemCount: _favorites.length,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.symmetric(vertical: 8),
                               itemBuilder: (context, index, animation) {
                                 final property = _favorites[index];
                                 return SizeTransition(
@@ -124,20 +112,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                   child: PropertyCard(
                                     key: ValueKey(property.id),
                                     property: property,
-                        isFavorite: true,
+                                    isFavorite: true,
                                     onFavoritePressed: () => _removeFavorite(index),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
                                           builder: (context) => PropertyViewScreen(property: property),
-                            ),
-                          );
-                        },
+                                        ),
+                                      );
+                                    },
                                   ),
-                  );
-                },
-              ),
+                                );
+                              },
+                            ),
             ),
           ],
         ),

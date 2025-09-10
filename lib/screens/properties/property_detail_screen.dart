@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../models/user_property.dart';
 import '../../services/user_property_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 import 'edit_property_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
@@ -92,27 +92,23 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
         title: Text(
           _property.propertyName,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTheme.headingMedium,
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AppTheme.background,
         elevation: 0,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: AppTheme.textPrimary,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
         ),
         actions: [
           IconButton(
             onPressed: _navigateToEditProperty,
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.edit_outlined, size: 22),
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
@@ -125,560 +121,57 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 value: 'delete',
                 child: Row(
                   children: [
-                    Icon(Icons.delete, color: Colors.red, size: 18),
+                    Icon(Icons.delete_outline, color: AppTheme.error, size: 18),
                     SizedBox(width: 8),
-                    Text('Delete'),
+                    Text('Delete Property'),
                   ],
                 ),
               ),
             ],
-            child: const Icon(Icons.more_vert),
+            child: const Icon(Icons.more_vert, size: 22),
           ),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Property Header Card with Image
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 1),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Property Image Section
-                  if (_property.imageUrls.isNotEmpty) ...[
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        color: Colors.grey[100],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        child: Image.file(
-                          File(_property.imageUrls.first),
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                child: Icon(
-                                  Icons.home,
-                                  color: Colors.grey,
-                                  size: 48,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ] else ...[
-                    // No image placeholder
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.blue[50]!,
-                            Colors.indigo[50]!,
-                          ],
-                        ),
-                      ),
-                      child: const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.home_outlined,
-                              color: Colors.blue,
-                              size: 48,
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'No Image Available',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                  
-                  // Property Info Section
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Icon(
-                                Icons.home,
-                                color: AppColors.primary,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _property.propertyName,
-                                    style: const TextStyle(
-                                      fontFamily: 'Montserrat',
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.location_on_outlined,
-                                        size: 16,
-                                        color: Colors.grey[600],
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Expanded(
-                                        child: Text(
-                                          _property.address,
-                                          style: TextStyle(
-                                            fontFamily: 'Montserrat',
-                                            fontSize: 14,
-                                            color: Colors.grey[600],
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 16),
-                        
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            _property.propertyTypeString,
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 12,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Hero Image Section
+            _buildHeroImageSection(),
             
             const SizedBox(height: 24),
             
-            // Financial Overview Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 1),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.green[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.account_balance_wallet_outlined,
-                          color: Colors.green[600],
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Financial Overview',
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildModernFinancialItem(
-                                'Purchase Price',
-                                _property.formattedPurchasePrice,
-                                Icons.shopping_cart_outlined,
-                                Colors.blue,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildModernFinancialItem(
-                                'Market Value',
-                                _property.formattedMarketValue,
-                                Icons.trending_up_outlined,
-                                Colors.green,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildModernFinancialItem(
-                                'Profit/Loss',
-                                _property.formattedProfitLoss,
-                                Icons.account_balance_wallet_outlined,
-                                _property.profitLoss != null && _property.profitLoss! >= 0 
-                                    ? Colors.green 
-                                    : Colors.red,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildModernFinancialItem(
-                                'Return %',
-                                _property.formattedProfitLossPercentage,
-                                Icons.percent_outlined,
-                                _property.profitLossPercentage != null && _property.profitLossPercentage! >= 0 
-                                    ? Colors.green 
-                                    : Colors.red,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Property Header Info
+            _buildPropertyHeader(),
             
             const SizedBox(height: 24),
             
-            // Investment Analysis Card
+            // Financial Overview
+            _buildFinancialOverview(),
+            
+            const SizedBox(height: 20),
+            
+            // Investment Analysis (if applicable)
             if (_property.monthlyRent != null || _property.annualAppreciationRate != null) ...[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                      spreadRadius: 0,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 6,
-                      offset: const Offset(0, 1),
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.purple[50],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Icon(
-                            Icons.trending_up_outlined,
-                            color: Colors.purple[600],
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Investment Analysis',
-                          style: const TextStyle(
-                            fontFamily: 'Montserrat',
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    if (_property.monthlyRent != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildModernFinancialItem(
-                                    'Monthly Rent',
-                                    _property.formattedMonthlyRent,
-                                    Icons.home_work_outlined,
-                                    Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildModernFinancialItem(
-                                    'Annual Rent',
-                                    _property.formattedAnnualRent,
-                                    Icons.calendar_today_outlined,
-                                    Colors.orange,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildModernFinancialItem(
-                                    'Rental Yield',
-                                    _property.formattedRentalYield,
-                                    Icons.percent_outlined,
-                                    Colors.purple,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildModernFinancialItem(
-                                    'Total Return',
-                                    _property.formattedTotalReturnPercentage,
-                                    Icons.trending_up_outlined,
-                                    Colors.green,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    
-                    if (_property.annualAppreciationRate != null && _property.monthlyRent == null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[50],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: _buildModernFinancialItem(
-                          'Annual Appreciation',
-                          '${_property.annualAppreciationRate!.toStringAsFixed(1)}%',
-                          Icons.trending_up_outlined,
-                          Colors.green,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
+              _buildInvestmentAnalysis(),
+              const SizedBox(height: 20),
             ],
             
-            // Property Details Card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 4),
-                    spreadRadius: 0,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 1),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          Icons.info_outlined,
-                          color: Colors.blue[600],
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Property Details',
-                        style: const TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 20),
-                  
-                  if (_property.purchaseDate != null) ...[
-                    _buildDetailRow(
-                      'Purchase Date',
-                      _formatDate(_property.purchaseDate!),
-                      Icons.calendar_today,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  
-                  if (_property.description != null && _property.description!.isNotEmpty) ...[
-                    _buildDetailRow(
-                      'Description',
-                      _property.description!,
-                      Icons.description,
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  
-                  _buildDetailRow(
-                    'Property Type',
-                    _property.propertyTypeString,
-                    Icons.category,
-                  ),
-                  
-                  const SizedBox(height: 12),
-                  
-                  _buildDetailRow(
-                    'Created',
-                    _formatDate(_property.createdAt ?? DateTime.now()),
-                    Icons.access_time,
-                  ),
-                ],
-              ),
-            ),
+            // Property Details
+            _buildPropertyDetails(),
             
-            const SizedBox(height: 24), // Safe spacing for bottom buttons
+            const SizedBox(height: 24),
           ],
         ),
       ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppTheme.background,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppTheme.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -690,22 +183,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   onPressed: _navigateToEditProperty,
-                  icon: const Icon(Icons.edit, size: 18),
-                  label: const Text(
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(
                     'Edit Property',
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTheme.buttonMedium.copyWith(color: AppTheme.primary),
                   ),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
+                    foregroundColor: AppTheme.primary,
+                    side: const BorderSide(color: AppTheme.primary),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -713,23 +202,19 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: _deleteProperty,
-                  icon: const Icon(Icons.delete, size: 18),
-                  label: const Text(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: Text(
                     'Delete',
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTheme.buttonMedium.copyWith(color: AppTheme.error),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red[50],
-                    foregroundColor: Colors.red[700],
+                    backgroundColor: AppTheme.errorLight,
+                    foregroundColor: AppTheme.error,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                 ),
               ),
@@ -740,7 +225,501 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildModernFinancialItem(
+  // Hero Image Section
+  Widget _buildHeroImageSection() {
+    return Container(
+      height: 280,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: _property.imageUrls.isNotEmpty
+            ? Image.file(
+                File(_property.imageUrls.first),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildNoImagePlaceholder();
+                },
+              )
+            : _buildNoImagePlaceholder(),
+      ),
+    );
+  }
+
+  Widget _buildNoImagePlaceholder() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryLight,
+            AppTheme.primary.withOpacity(0.8),
+          ],
+        ),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.home_outlined,
+              color: AppTheme.white,
+              size: 64,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'No Image Available',
+              style: TextStyle(
+                color: AppTheme.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Property Header Info
+  Widget _buildPropertyHeader() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.home_outlined,
+                  color: AppTheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _property.propertyName,
+                      style: AppTheme.headingXLarge,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppTheme.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _property.address,
+                            style: AppTheme.textMedium.copyWith(
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 20),
+          
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryLight,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  _property.propertyTypeString,
+                  style: AppTheme.textSmall.copyWith(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              if (_property.area != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.grey100,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.square_foot,
+                        size: 14,
+                        color: AppTheme.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${_property.area!.toInt()} sq m',
+                        style: AppTheme.textSmall.copyWith(
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  // Financial Overview
+  Widget _buildFinancialOverview() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.successLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: AppTheme.success,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Financial Overview',
+                style: AppTheme.headingLarge,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppTheme.backgroundSecondary,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.borderLight),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFinancialItem(
+                        'Purchase Price',
+                        _property.formattedPurchasePrice,
+                        Icons.shopping_cart_outlined,
+                        AppTheme.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFinancialItem(
+                        'Market Value',
+                        _property.formattedMarketValue,
+                        Icons.trending_up_outlined,
+                        AppTheme.success,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFinancialItem(
+                        'Profit/Loss',
+                        _property.formattedProfitLoss,
+                        Icons.account_balance_wallet_outlined,
+                        _property.profitLoss != null && _property.profitLoss! >= 0 
+                            ? AppTheme.success 
+                            : AppTheme.error,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFinancialItem(
+                        'Return %',
+                        _property.formattedProfitLossPercentage,
+                        Icons.percent_outlined,
+                        _property.profitLossPercentage != null && _property.profitLossPercentage! >= 0 
+                            ? AppTheme.success 
+                            : AppTheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Investment Analysis
+  Widget _buildInvestmentAnalysis() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.purpleLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.trending_up_outlined,
+                  color: AppTheme.purple,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Investment Analysis',
+                style: AppTheme.headingLarge,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
+          if (_property.monthlyRent != null) ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundSecondary,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderLight),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Monthly Rent',
+                          _property.formattedMonthlyRent,
+                          Icons.home_work_outlined,
+                          AppTheme.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Annual Rent',
+                          _property.formattedAnnualRent,
+                          Icons.calendar_today_outlined,
+                          AppTheme.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Rental Yield',
+                          _property.formattedRentalYield,
+                          Icons.percent_outlined,
+                          AppTheme.purple,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildFinancialItem(
+                          'Total Return',
+                          _property.formattedTotalReturnPercentage,
+                          Icons.trending_up_outlined,
+                          AppTheme.success,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+          
+          if (_property.annualAppreciationRate != null && _property.monthlyRent == null) ...[
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppTheme.backgroundSecondary,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.borderLight),
+              ),
+              child: _buildFinancialItem(
+                'Annual Appreciation',
+                '${_property.annualAppreciationRate!.toStringAsFixed(1)}%',
+                Icons.trending_up_outlined,
+                AppTheme.success,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Property Details
+  Widget _buildPropertyDetails() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppTheme.background,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.blueLight,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.info_outlined,
+                  color: AppTheme.blue,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Property Details',
+                style: AppTheme.headingLarge,
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 24),
+          
+          if (_property.purchaseDate != null) ...[
+            _buildDetailItem(
+              'Purchase Date',
+              _formatDate(_property.purchaseDate!),
+              Icons.calendar_today,
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          if (_property.description != null && _property.description!.isNotEmpty) ...[
+            _buildDetailItem(
+              'Description',
+              _property.description!,
+              Icons.description,
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          _buildDetailItem(
+            'Property Type',
+            _property.propertyTypeString,
+            Icons.category,
+          ),
+          
+          const SizedBox(height: 16),
+          
+          _buildDetailItem(
+            'Created',
+            _formatDate(_property.createdAt ?? DateTime.now()),
+            Icons.access_time,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Financial Item Widget
+  Widget _buildFinancialItem(
     String label,
     String value,
     IconData icon,
@@ -752,7 +731,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
@@ -767,10 +746,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 12,
-                  color: Colors.grey[600],
+                style: AppTheme.textSmall.copyWith(
+                  color: AppTheme.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
@@ -782,12 +759,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
         const SizedBox(height: 8),
         Text(
           value,
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+          style: AppTheme.textLarge.copyWith(
             color: color,
-            height: 1.2,
+            fontWeight: FontWeight.bold,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -796,24 +770,24 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-
-  Widget _buildDetailRow(String label, String value, IconData icon) {
+  // Detail Item Widget
+  Widget _buildDetailItem(String label, String value, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
+        color: AppTheme.backgroundSecondary,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderLight),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(6),
+              color: AppTheme.blueLight,
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, size: 16, color: Colors.blue[600]),
+            child: Icon(icon, size: 16, color: AppTheme.blue),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -822,20 +796,16 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 12,
-                    color: Colors.grey[600],
+                  style: AppTheme.textSmall.copyWith(
+                    color: AppTheme.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 14,
-                    color: AppColors.textPrimary,
+                  style: AppTheme.textMedium.copyWith(
+                    color: AppTheme.textPrimary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
-import '../../theme/text_styles.dart';
+import '../../theme/app_theme.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -91,8 +90,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (user == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Edit Profile'),
-          backgroundColor: Colors.white,
+          title: Text('Edit Profile', style: AppTheme.headingMedium),
+          backgroundColor: AppTheme.background,
           elevation: 0,
         ),
         body: const Center(
@@ -102,30 +101,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text('Edit Profile'),
-        backgroundColor: Colors.white,
+        title: Text('Edit Profile', style: AppTheme.headingMedium),
+        backgroundColor: AppTheme.background,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios, color: AppTheme.textPrimary, size: 20),
         ),
         actions: [
           TextButton(
             onPressed: _isLoading ? null : _handleSaveProfile,
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     height: 16,
                     width: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
                     'Save',
-                    style: AppTextStyles.button.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: AppTheme.buttonMedium.copyWith(color: AppTheme.primary),
                   ),
           ),
         ],
@@ -141,11 +137,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppTheme.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -158,7 +154,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(40),
                       ),
                       child: Center(
@@ -166,10 +162,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           user.firstName.isNotEmpty && user.lastName.isNotEmpty
                               ? '${user.firstName[0]}${user.lastName[0]}'
                               : user.email[0].toUpperCase(),
-                          style: AppTextStyles.headlineMedium.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: AppTheme.textXLarge.copyWith(color: AppTheme.white, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
@@ -181,13 +174,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: AppTheme.backgroundSecondary,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!),
+                        border: Border.all(color: AppTheme.borderLight),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.email, color: Colors.grey[600], size: 20),
+                          const Icon(Icons.email_outlined, color: AppTheme.primary, size: 20),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
@@ -195,18 +188,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               children: [
                                 Text(
                                   'Email',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: AppTheme.textSmall.copyWith(color: AppTheme.textSecondary, fontWeight: FontWeight.w500),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   user.email,
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    color: AppColors.textPrimary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: AppTheme.textMedium.copyWith(color: AppTheme.textPrimary, fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
@@ -225,11 +212,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: AppTheme.black.withOpacity(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -240,10 +227,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   children: [
                     Text(
                       'Personal Information',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.textLarge.copyWith(fontWeight: FontWeight.bold),
                     ),
                     
                     const SizedBox(height: 20),
@@ -252,23 +236,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     TextFormField(
                       controller: _firstNameController,
                       textInputAction: TextInputAction.next,
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'First Name *',
                         hintText: 'Enter your first name',
-                        prefixIcon: const Icon(Icons.person_outline),
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
+                        prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primary),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -288,23 +275,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       controller: _lastNameController,
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _handleSaveProfile(),
+                      style: AppTheme.formInput,
                       decoration: InputDecoration(
                         labelText: 'Last Name *',
                         hintText: 'Enter your last name',
-                        prefixIcon: const Icon(Icons.person_outline),
+                        labelStyle: AppTheme.formLabel,
+                        hintStyle: AppTheme.formHint,
+                        prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primary),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppTheme.borderLight),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppTheme.backgroundSecondary,
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -329,29 +319,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSaveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppTheme.primary,
+                    foregroundColor: AppTheme.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     elevation: 0,
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
                           ),
                         )
-                      : Text(
-                          'Save Changes',
-                          style: AppTextStyles.button.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                      : Text('Save Changes', style: AppTheme.buttonLarge.copyWith(color: AppTheme.white)),
                 ),
               ),
             ],

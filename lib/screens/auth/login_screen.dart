@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 import 'profile_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -57,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result.errorMessage ?? 'Login failed'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppTheme.error,
             ),
           );
         }
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Login failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -81,7 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.backgroundSecondary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -96,36 +96,43 @@ class _LoginScreenState extends State<LoginScreen> {
                 Column(
                   children: [
                     Container(
-                      width: 80,
-                      height: 80,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppTheme.primary,
+                            AppTheme.primary.withOpacity(0.8),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
                       child: const Icon(
-                        Icons.home,
-                        color: Colors.white,
-                        size: 40,
+                        Icons.home_outlined,
+                        color: AppTheme.white,
+                        size: 48,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 32),
                     Text(
                       'Welcome to EstateMar',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: AppTheme.headingXLarge,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
                     Text(
                       'Sign in to manage your properties',
-                      style: const TextStyle(
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
+                      style: AppTheme.textLarge.copyWith(
+                        color: AppTheme.textSecondary,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -140,23 +147,29 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.done,
                   onFieldSubmitted: (_) => _handleLogin(),
+                  style: AppTheme.formInput,
                   decoration: InputDecoration(
                     labelText: 'Email Address',
                     hintText: 'Enter your email',
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    labelStyle: AppTheme.formLabel,
+                    hintStyle: AppTheme.formHint,
+                    prefixIcon: const Icon(
+                      Icons.email_outlined,
+                      color: AppTheme.primary,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.borderLight),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
                     ),
                     filled: true,
-                    fillColor: Colors.grey[50],
+                    fillColor: AppTheme.background,
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
@@ -177,10 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: AppTheme.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                       elevation: 0,
                     ),
@@ -190,17 +203,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.white),
                             ),
                           )
-                        : const Text(
+                        : Text(
                             'Sign In',
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: AppTheme.buttonLarge.copyWith(color: AppTheme.white),
                           ),
                   ),
                 ),
@@ -209,36 +217,32 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 // Demo Info
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue[200]!),
+                    color: AppTheme.infoLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.info.withOpacity(0.3)),
                   ),
                   child: Column(
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Colors.blue[600],
-                        size: 20,
+                        color: AppTheme.info,
+                        size: 24,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Demo Mode',
+                        style: AppTheme.textMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.info,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Demo Mode',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
                         'Enter any valid email address to sign in. New users will be prompted to set up their profile.',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          fontSize: 12,
-                          color: Colors.blue[700],
+                        style: AppTheme.textSmall.copyWith(
+                          color: AppTheme.info,
                         ),
                         textAlign: TextAlign.center,
                       ),

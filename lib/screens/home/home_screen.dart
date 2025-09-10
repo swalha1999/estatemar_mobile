@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/colors.dart';
+import '../../theme/app_theme.dart';
 import '../../widgets/property_card.dart';
 import '../../widgets/animated_search_header.dart';
 import '../../models/property.dart';
@@ -133,7 +133,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppTheme.backgroundSecondary,
       body: SafeArea(
         child: Column(
           children: [
@@ -142,19 +142,17 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: Colors.orange[100],
+                color: AppTheme.warningLight,
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.orange[800], size: 16),
+                    const Icon(Icons.info_outline, color: AppTheme.warning, size: 16),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Demo Mode: Using sample data. Switch to real API in app_config.dart',
-                        style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          color: Colors.orange[800],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                        style: AppTheme.textSmall.copyWith(
+                          color: AppTheme.warning,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -200,10 +198,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             // Tabs
             Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppTheme.background,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: AppTheme.black.withOpacity(0.03),
                     blurRadius: 2,
                     offset: const Offset(0, 1),
                   ),
@@ -220,12 +218,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       indicator: UnderlineTabIndicator(
                         borderSide: BorderSide(
                           width: 3.0,
-                          color: AppColors.primary,
+                          color: AppTheme.primary,
                         ),
                         insets: EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      labelColor: AppColors.primary,
-                      unselectedLabelColor: Colors.grey[600],
+                      labelColor: AppTheme.primary,
+                      unselectedLabelColor: AppTheme.grey600,
                       labelPadding: const EdgeInsets.symmetric(horizontal: 16),
                       tabs: List.generate(_tabs.length, (index) {
                         final tab = _tabs[index];
@@ -233,11 +231,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           icon: Icon(tab.icon, size: 20),
                           child: Text(
                             tab.label,
-                            style: const TextStyle(
-                              fontFamily: 'Montserrat',
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: AppTheme.textSmall.copyWith(fontWeight: FontWeight.w600),
                           ),
                         );
                       }),
@@ -340,11 +334,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: Center(
           child: Text(
             'No properties found.',
-            style: const TextStyle(
-              fontFamily: 'Montserrat',
-              fontSize: 16,
-              color: Colors.grey,
-            ),
+            style: AppTheme.textLarge.copyWith(color: AppTheme.textSecondary),
           ),
         ),
       );
@@ -402,20 +392,14 @@ class _FilterChip extends StatelessWidget {
       child: Chip(
         label: Text(
           text,
-          style: const TextStyle(
-            fontFamily: 'Montserrat',
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
+          style: AppTheme.textMedium.copyWith(fontWeight: FontWeight.w600, color: AppTheme.primary),
         ),
-        deleteIcon: const Icon(Icons.close, size: 16),
+        deleteIcon: const Icon(Icons.close, size: 16, color: AppTheme.primary),
         onDeleted: onDelete,
-        backgroundColor: AppColors.primary.withOpacity(0.08),
-        labelStyle: TextStyle(color: AppColors.primary),
-        deleteIconColor: AppColors.primary,
+        backgroundColor: AppTheme.primary.withOpacity(0.08),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: AppColors.primary.withOpacity(0.2)),
+          side: BorderSide(color: AppTheme.primary.withOpacity(0.2)),
         ),
       ),
     );

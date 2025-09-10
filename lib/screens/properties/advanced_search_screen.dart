@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/property.dart';
+import '../../theme/app_theme.dart';
 
 class AdvancedSearchScreen extends StatefulWidget {
   final Map<String, dynamic>? initialFilters;
@@ -27,7 +28,6 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   List<String> _locations = ['Any'];
   List<IconData> _locationIcons = [Icons.public];
 
-  @override
   void _generateLocationsFromProperties() {
     final uniqueLocations = widget.properties.map((p) => p.location).toSet().toList();
     uniqueLocations.sort();
@@ -70,15 +70,15 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundSecondary,
       appBar: AppBar(
-        title: const Text('Filter Properties'),
+        title: Text('Filter Properties', style: AppTheme.headingMedium),
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close, size: 20, color: AppTheme.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        backgroundColor: AppTheme.background,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -113,12 +113,12 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
       children: List.generate(_locations.length, (i) {
         final isSelected = _selectedLocation == _locations[i] || (_selectedLocation == null && _locations[i] == 'Any');
         return ChoiceChip(
-          avatar: Icon(_locationIcons[i], size: 20, color: isSelected ? Colors.white : Colors.blue),
+          avatar: Icon(_locationIcons[i], size: 20, color: isSelected ? AppTheme.white : AppTheme.primary),
           label: Text(_locations[i]),
           selected: isSelected,
           onSelected: (_) => setState(() => _selectedLocation = _locations[i]),
-          selectedColor: Colors.blue,
-          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+          selectedColor: AppTheme.primary,
+          labelStyle: TextStyle(color: isSelected ? AppTheme.white : AppTheme.textPrimary),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           showCheckmark: false,
         );
@@ -142,12 +142,12 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
         final type = PropertyType.values[i];
         final isSelected = _selectedType == type;
         return ChoiceChip(
-          avatar: Icon(propertyTypeIcons[i], size: 20, color: isSelected ? Colors.white : Colors.blue),
+          avatar: Icon(propertyTypeIcons[i], size: 20, color: isSelected ? AppTheme.white : AppTheme.primary),
           label: Text(type.name[0].toUpperCase() + type.name.substring(1)),
           selected: isSelected,
           onSelected: (_) => setState(() => _selectedType = type),
-          selectedColor: Colors.blue,
-          labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+          selectedColor: AppTheme.primary,
+          labelStyle: TextStyle(color: isSelected ? AppTheme.white : AppTheme.textPrimary),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           showCheckmark: false,
         );
@@ -163,13 +163,15 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
           min: _minPrice,
           max: _maxPrice,
           divisions: 50,
+          activeColor: AppTheme.primary,
+          inactiveColor: AppTheme.primary.withOpacity(0.2),
           onChanged: (values) => setState(() => _priceRange = values),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(_formatCurrency(_priceRange!.start)),
-            Text(_formatCurrency(_priceRange!.end)),
+            Text(_formatCurrency(_priceRange!.start), style: AppTheme.textMedium.copyWith(color: AppTheme.textSecondary)),
+            Text(_formatCurrency(_priceRange!.end), style: AppTheme.textMedium.copyWith(color: AppTheme.textSecondary)),
           ],
         ),
       ],
@@ -180,7 +182,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(title, style: AppTheme.headingLarge),
         const SizedBox(height: 16),
         child,
       ],
@@ -191,8 +193,8 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15).copyWith(bottom: MediaQuery.of(context).padding.bottom + 10),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+        color: AppTheme.background,
+        border: const Border(top: BorderSide(color: AppTheme.borderLight)),
       ),
       child: Row(
         children: [
@@ -205,7 +207,7 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                   _priceRange = RangeValues(_minPrice, _maxPrice);
                 });
               },
-              child: const Text('Clear All'),
+              child: Text('Clear All', style: AppTheme.buttonMedium.copyWith(color: AppTheme.textSecondary)),
             ),
           ),
           const SizedBox(width: 16),
@@ -220,10 +222,10 @@ class _AdvancedSearchScreenState extends State<AdvancedSearchScreen> {
                 });
               },
               icon: const Icon(Icons.search),
-              label: const Text('Apply Filters'),
+              label: Text('Apply Filters', style: AppTheme.buttonMedium.copyWith(color: AppTheme.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+                backgroundColor: AppTheme.primary,
+                foregroundColor: AppTheme.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
