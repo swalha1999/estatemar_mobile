@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'EstateMar Mobile',
+      title: 'Estatemar Mobile',
       theme: AppTheme.lightTheme,
       home: const MainNavigationScreen(),
     );

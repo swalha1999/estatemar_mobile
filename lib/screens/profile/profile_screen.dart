@@ -139,7 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.black.withOpacity(0.05),
+                    color: AppTheme.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -155,23 +155,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(40),
                     ),
-                    child: Center(
-                      child: Text(
-                        _currentUser!.firstName.isNotEmpty && _currentUser!.lastName.isNotEmpty
-                            ? '${_currentUser!.firstName[0]}${_currentUser!.lastName[0]}'
-                            : _currentUser!.email[0].toUpperCase(),
-                        style: AppTheme.textXLarge.copyWith(color: AppTheme.white, fontWeight: FontWeight.bold),
+                      child: Center(
+                        child: Text(
+                          _currentUser!.fullName?.isNotEmpty == true
+                              ? _currentUser!.fullName!.substring(0, 2).toUpperCase()
+                              : _currentUser!.email[0].toUpperCase(),
+                          style: AppTheme.textXLarge.copyWith(color: AppTheme.white, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
                   ),
                   
                   const SizedBox(height: 16),
                   
                   // Name
                   Text(
-                    _currentUser!.fullName.isNotEmpty 
-                        ? _currentUser!.fullName 
-                        : 'Complete your profile',
+                    _currentUser!.displayName,
                     style: AppTheme.headingXLarge,
                     textAlign: TextAlign.center,
                   ),
@@ -219,7 +217,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.black.withOpacity(0.05),
+                    color: AppTheme.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -245,21 +243,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   
                   _buildInfoRow(
                     icon: Icons.person,
-                    label: 'First Name',
-                    value: _currentUser!.firstName.isNotEmpty 
-                        ? _currentUser!.firstName 
-                        : 'Not set',
+                    label: 'Full Name',
+                    value: _currentUser!.fullName ?? 'Not set',
                   ),
                   
-                  const SizedBox(height: 12),
-                  
-                  _buildInfoRow(
-                    icon: Icons.person,
-                    label: 'Last Name',
-                    value: _currentUser!.lastName.isNotEmpty 
-                        ? _currentUser!.lastName 
-                        : 'Not set',
-                  ),
+                  if (_currentUser!.fullPhoneNumber != null) ...[
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      icon: Icons.phone,
+                      label: 'Phone',
+                      value: _currentUser!.fullPhoneNumber!,
+                    ),
+                  ],
                   
                   if (_currentUser!.createdAt != null) ...[
                     const SizedBox(height: 12),

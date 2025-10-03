@@ -14,28 +14,50 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _isSignUp = false; // Toggle between sign in and sign up
 
   @override
   void dispose() {
+    _fullNameController.dispose();
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
+  Future<void> _handleAuth() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final result = await AuthService.loginWithEmail(_emailController.text.trim());
+      final AuthResult result;
+      
+      if (_isSignUp) {
+        // Sign up with full name
+        result = await AuthService.signUp(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          fullName: _fullNameController.text.trim(),
+        );
+      } else {
+        // Sign in
+        result = await AuthService.signIn(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+      }
       
       if (result.isSuccess && result.user != null) {
-        if (result.isNewUser) {
-          // Navigate to profile setup for new users
+        // Check if user needs to add phone number
+        if (result.isNewUser || !result.user!.isProfileComplete) {
+          // Navigate to profile setup to collect phone number
           if (mounted) {
-            Navigator.push(
+            final completed = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (context) => ProfileSetupScreen(
@@ -44,20 +66,42 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             );
+            
+            // If setup was completed, navigate to main app
+            if (completed == true && mounted) {
+              widget.onLoginSuccess?.call();
+              // Pop all auth screens and return to main navigation
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            } else if (mounted) {
+              // If user cancelled, just go back to login
+              setState(() {
+                _isLoading = false;
+              });
+            }
           }
         } else {
-          // Navigate back to main screen for existing users
+          // User already has complete profile, go to main app
           if (mounted) {
             widget.onLoginSuccess?.call();
-            Navigator.pop(context, true); // Return true to indicate successful login
+            Navigator.of(context).popUntil((route) => route.isFirst);
           }
         }
       } else {
         if (mounted) {
+          // Show detailed error message
+          final errorMsg = result.errorMessage ?? 'Authentication failed';
+          print('🚨 Auth Error: $errorMsg');
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.errorMessage ?? 'Login failed'),
+              content: Text(errorMsg),
               backgroundColor: AppTheme.error,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'OK',
+                textColor: AppTheme.white,
+                onPressed: () {},
+              ),
             ),
           );
         }
@@ -66,7 +110,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
+            content: Text('Authentication failed: ${e.toString()}'),
             backgroundColor: AppTheme.error,
           ),
         );
@@ -83,14 +127,14 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundSecondary,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Spacer(),
+                const SizedBox(height: 40),
                 
                 // Logo/Title Section
                 Column(
@@ -104,13 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             AppTheme.primary,
-                            AppTheme.primary.withOpacity(0.8),
+                            AppTheme.primary.withValues(alpha: 0.8),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primary.withOpacity(0.3),
+                            color: AppTheme.primary.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 8),
                           ),
@@ -124,13 +168,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      'Welcome to EstateMar',
+                      'Welcome to Estatemar',
                       style: AppTheme.headingXLarge,
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Sign in to manage your properties',
+                      _isSignUp ? 'Create your account to get started' : 'Sign in to manage your properties',
                       style: AppTheme.textLarge.copyWith(
                         color: AppTheme.textSecondary,
                       ),
@@ -141,12 +185,55 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 48),
                 
+                // Full Name Input (only for sign up)
+                if (_isSignUp) ...[
+                  TextFormField(
+                    controller: _fullNameController,
+                    textInputAction: TextInputAction.next,
+                    style: AppTheme.formInput,
+                    decoration: InputDecoration(
+                      labelText: 'Full Name',
+                      hintText: 'Enter your full name',
+                      labelStyle: AppTheme.formLabel,
+                      hintStyle: AppTheme.formHint,
+                      prefixIcon: const Icon(
+                        Icons.person_outline,
+                        color: AppTheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppTheme.borderLight),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: AppTheme.background,
+                    ),
+                    validator: (value) {
+                      if (_isSignUp) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Please enter your full name';
+                        }
+                        if (value.trim().length < 3) {
+                          return 'Name must be at least 3 characters';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                
                 // Email Input
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.done,
-                  onFieldSubmitted: (_) => _handleLogin(),
+                  textInputAction: TextInputAction.next,
                   style: AppTheme.formInput,
                   decoration: InputDecoration(
                     labelText: 'Email Address',
@@ -182,13 +269,67 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 
+                const SizedBox(height: 16),
+                
+                // Password Input
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleAuth(),
+                  style: AppTheme.formInput,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    hintText: 'Enter your password',
+                    labelStyle: AppTheme.formLabel,
+                    hintStyle: AppTheme.formHint,
+                    prefixIcon: const Icon(
+                      Icons.lock_outlined,
+                      color: AppTheme.primary,
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.borderLight),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                    ),
+                    filled: true,
+                    fillColor: AppTheme.background,
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your password';
+                    }
+                    if (_isSignUp && value.length < 6) {
+                      return 'Password must be at least 6 characters';
+                    }
+                    return null;
+                  },
+                ),
+                
                 const SizedBox(height: 24),
                 
-                // Login Button
+                // Auth Button
                 SizedBox(
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
+                    onPressed: _isLoading ? null : _handleAuth,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
                       foregroundColor: AppTheme.white,
@@ -207,7 +348,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           )
                         : Text(
-                            'Sign In',
+                            _isSignUp ? 'Sign Up' : 'Sign In',
                             style: AppTheme.buttonLarge.copyWith(color: AppTheme.white),
                           ),
                   ),
@@ -215,42 +356,35 @@ class _LoginScreenState extends State<LoginScreen> {
                 
                 const SizedBox(height: 16),
                 
-                // Demo Info
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppTheme.infoLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppTheme.info.withOpacity(0.3)),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: AppTheme.info,
-                        size: 24,
+                // Toggle Sign In / Sign Up
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      _isSignUp ? 'Already have an account?' : 'Don\'t have an account?',
+                      style: AppTheme.textMedium.copyWith(
+                        color: AppTheme.textSecondary,
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Demo Mode',
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _isSignUp = !_isSignUp;
+                          _formKey.currentState?.reset();
+                        });
+                      },
+                      child: Text(
+                        _isSignUp ? 'Sign In' : 'Sign Up',
                         style: AppTheme.textMedium.copyWith(
+                          color: AppTheme.primary,
                           fontWeight: FontWeight.w600,
-                          color: AppTheme.info,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Enter any valid email address to sign in. New users will be prompted to set up their profile.',
-                        style: AppTheme.textSmall.copyWith(
-                          color: AppTheme.info,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 
-                const Spacer(),
+                const SizedBox(height: 40),
               ],
             ),
           ),
@@ -259,3 +393,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+

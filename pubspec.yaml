@@ -53,6 +53,12 @@ dependencies:
   
   # Image picker for selecting images
   image_picker: ^1.0.7
+  
+  # Phone input with country picker and flags
+  intl_phone_field: ^3.2.0
+  
+  # Country picker for searchable country selection
+  country_picker: ^2.0.26
 
 dev_dependencies:
   flutter_test:

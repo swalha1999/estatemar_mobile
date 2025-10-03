@@ -11,8 +11,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
+  final _fullNameController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -23,16 +22,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _loadUserData() {
     final user = AuthService.currentUser;
-    if (user != null) {
-      _firstNameController.text = user.firstName;
-      _lastNameController.text = user.lastName;
+    if (user != null && user.fullName != null) {
+      _fullNameController.text = user.fullName!;
     }
   }
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _fullNameController.dispose();
     super.dispose();
   }
 
@@ -43,8 +40,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final result = await AuthService.updateProfile(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        fullName: _fullNameController.text.trim(),
       );
 
       if (result.isSuccess) {
@@ -139,13 +135,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.background,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                 ),
                 child: Column(
                   children: [
@@ -159,8 +155,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          user.firstName.isNotEmpty && user.lastName.isNotEmpty
-                              ? '${user.firstName[0]}${user.lastName[0]}'
+                          user.fullName?.isNotEmpty == true
+                              ? user.fullName!.substring(0, 2).toUpperCase()
                               : user.email[0].toUpperCase(),
                           style: AppTheme.textXLarge.copyWith(color: AppTheme.white, fontWeight: FontWeight.bold),
                         ),
@@ -216,7 +212,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.black.withOpacity(0.05),
+                          color: AppTheme.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -226,86 +222,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Personal Information',
-                      style: AppTheme.textLarge.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // First Name Input
-                    TextFormField(
-                      controller: _firstNameController,
-                      textInputAction: TextInputAction.next,
-                      style: AppTheme.formInput,
-                      decoration: InputDecoration(
-                        labelText: 'First Name *',
-                        hintText: 'Enter your first name',
-                        labelStyle: AppTheme.formLabel,
-                        hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primary),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.borderLight),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.backgroundSecondary,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your first name';
-                        }
-                        if (value.trim().length < 2) {
-                          return 'First name must be at least 2 characters';
-                        }
-                        return null;
-                      },
-                    ),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Last Name Input
-                    TextFormField(
-                      controller: _lastNameController,
-                      textInputAction: TextInputAction.done,
-                      onFieldSubmitted: (_) => _handleSaveProfile(),
-                      style: AppTheme.formInput,
-                      decoration: InputDecoration(
-                        labelText: 'Last Name *',
-                        hintText: 'Enter your last name',
-                        labelStyle: AppTheme.formLabel,
-                        hintStyle: AppTheme.formHint,
-                        prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primary),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.borderLight),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.primary, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: AppTheme.backgroundSecondary,
-                      ),
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Please enter your last name';
-                        }
-                        if (value.trim().length < 2) {
-                          return 'Last name must be at least 2 characters';
-                        }
-                        return null;
-                      },
-                    ),
+                            'Personal Information',
+                            style: AppTheme.textLarge.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          
+                          const SizedBox(height: 20),
+                          
+                          // Full Name Input
+                          TextFormField(
+                            controller: _fullNameController,
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) => _handleSaveProfile(),
+                            style: AppTheme.formInput,
+                            decoration: InputDecoration(
+                              labelText: 'Full Name *',
+                              hintText: 'Enter your full name',
+                              labelStyle: AppTheme.formLabel,
+                              hintStyle: AppTheme.formHint,
+                              prefixIcon: const Icon(Icons.person_outline, color: AppTheme.primary),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppTheme.borderLight),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: AppTheme.backgroundSecondary,
+                            ),
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter your full name';
+                              }
+                              if (value.trim().length < 3) {
+                                return 'Name must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                          ),
                   ],
                 ),
               ),

@@ -3,14 +3,14 @@ class AppConfig {
   static const bool useMockData = true;
   
   // API Configuration
-  static const String apiBaseUrl = 'https://estatemar.com/api';
+  static const String apiBaseUrl = 'https://api.estatemar.com/api';
   static const Duration networkTimeout = Duration(seconds: 10);
   
   // Mock data configuration
   static const Duration mockNetworkDelay = Duration(milliseconds: 500);
   
   // App Configuration
-  static const String appName = 'EstateMar Mobile';
+  static const String appName = 'Estatemar Mobile';
   static const String appVersion = '1.0.0';
   
   // Feature flags

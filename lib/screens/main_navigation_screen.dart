@@ -85,10 +85,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   Future<void> _handleLoginResult() async {
+    print('🔄 handleLoginResult called');
     try {
       await _checkAuthStatus();
+      print('✅ Auth status updated: $_isLoggedIn');
       // The setState in _checkAuthStatus will automatically update the UI
     } catch (e) {
+      print('❌ Error in handleLoginResult: $e');
       // Handle any errors during auth check
       if (mounted) {
         setState(() {
@@ -120,6 +123,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('🏗️ Building MainNavigationScreen - isLoggedIn: $_isLoggedIn, currentIndex: $_currentIndex');
+    
     return Scaffold(
       backgroundColor: AppTheme.backgroundSecondary,
       body: _buildPage(_currentIndex),
