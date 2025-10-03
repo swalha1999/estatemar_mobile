@@ -1,11 +1,32 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/property.dart';
+import '../models/user_property.dart';
 import '../config/app_config.dart';
+import 'auth_service.dart';
 
 class ApiService {
   static const String _baseUrl = AppConfig.apiBaseUrl;
   static const bool _useMockData = AppConfig.useMockData;
+
+  /// Get headers with authentication
+  static Map<String, String> _getHeaders() {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+    
+    final token = AuthService.authToken;
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
+    
+    final cookie = AuthService.sessionCookie;
+    if (cookie != null && cookie.isNotEmpty) {
+      headers['Cookie'] = cookie;
+    }
+    
+    return headers;
+  }
 
   Future<List<Property>> getProperties({
     int page = 1,
@@ -75,7 +96,7 @@ class ApiService {
 
       final uri = Uri.parse('$_baseUrl/properties').replace(queryParameters: queryParams);
       
-      final response = await http.get(uri);
+      final response = await http.get(uri, headers: _getHeaders());
       
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -123,7 +144,7 @@ class ApiService {
 
     try {
       final uri = Uri.parse('$_baseUrl/properties/$id');
-      final response = await http.get(uri);
+      final response = await http.get(uri, headers: _getHeaders());
       
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -191,7 +212,7 @@ class ApiService {
         queryParameters: {'search': query},
       );
       
-      final response = await http.get(uri);
+      final response = await http.get(uri, headers: _getHeaders());
       
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
@@ -307,6 +328,144 @@ class ApiService {
         'forRent': forRent,
         'featured': featured,
       };
+    }
+  }
+
+  /// Create a new user property
+  Future<UserProperty?> createUserProperty(UserProperty property) async {
+    try {
+      print('📤 Creating user property...');
+      print('   Property: ${property.propertyName}');
+      print('   Address: ${property.address}');
+      
+      final response = await http.post(
+        Uri.parse('$_baseUrl/user/properties'),
+        headers: _getHeaders(),
+        body: json.encode(property.toJson()),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Create Property Response: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        
+        // Handle different response structures
+        final propertyData = data['data'] ?? data['property'] ?? data;
+        
+        if (propertyData != null) {
+          print('✅ Property created successfully on server');
+          return UserProperty.fromJson(propertyData);
+        }
+      } else if (response.statusCode == 401) {
+        print('❌ Unauthorized - check authentication');
+        throw Exception('Authentication required');
+      } else {
+        print('⚠️ Failed to create property: ${response.statusCode}');
+        print('   Body: ${response.body}');
+        throw Exception('Failed to create property: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error creating property: $e');
+      rethrow;
+    }
+    
+    return null;
+  }
+
+  /// Update an existing user property
+  Future<UserProperty?> updateUserProperty(UserProperty property) async {
+    try {
+      print('📤 Updating user property...');
+      print('   Property ID: ${property.id}');
+      print('   Property: ${property.propertyName}');
+      
+      final response = await http.put(
+        Uri.parse('$_baseUrl/user/properties/${property.id}'),
+        headers: _getHeaders(),
+        body: json.encode(property.toJson()),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Update Property Response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final propertyData = data['data'] ?? data['property'] ?? data;
+        
+        if (propertyData != null) {
+          print('✅ Property updated successfully on server');
+          return UserProperty.fromJson(propertyData);
+        }
+      } else if (response.statusCode == 401) {
+        throw Exception('Authentication required');
+      } else {
+        throw Exception('Failed to update property: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error updating property: $e');
+      rethrow;
+    }
+    
+    return null;
+  }
+
+  /// Delete a user property
+  Future<bool> deleteUserProperty(String propertyId) async {
+    try {
+      print('📤 Deleting user property...');
+      print('   Property ID: $propertyId');
+      
+      final response = await http.delete(
+        Uri.parse('$_baseUrl/user/properties/$propertyId'),
+        headers: _getHeaders(),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Delete Property Response: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ Property deleted successfully from server');
+        return true;
+      } else if (response.statusCode == 401) {
+        throw Exception('Authentication required');
+      } else {
+        throw Exception('Failed to delete property: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error deleting property: $e');
+      rethrow;
+    }
+  }
+
+  /// Get all user properties for the authenticated user
+  Future<List<UserProperty>> getUserProperties() async {
+    try {
+      print('📤 Fetching user properties...');
+      
+      final response = await http.get(
+        Uri.parse('$_baseUrl/user/properties'),
+        headers: _getHeaders(),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Get User Properties Response: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final propertiesData = data['data'] ?? data['properties'] ?? data;
+        
+        if (propertiesData is List) {
+          print('✅ Loaded ${propertiesData.length} properties from server');
+          return propertiesData.map((json) => UserProperty.fromJson(json)).toList();
+        }
+        
+        return [];
+      } else if (response.statusCode == 401) {
+        throw Exception('Authentication required');
+      } else {
+        throw Exception('Failed to load properties: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('❌ Error loading user properties: $e');
+      rethrow;
     }
   }
 

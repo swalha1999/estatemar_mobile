@@ -8,14 +8,17 @@ class AuthService {
   static const String _userKey = 'current_user';
   static const String _tokenKey = 'auth_token';
   static const String _isLoggedInKey = 'is_logged_in';
+  static const String _sessionCookieKey = 'session_cookie';
 
   static User? _currentUser;
   static bool _isLoggedIn = false;
   static String? _authToken;
+  static String? _sessionCookie;
 
   static User? get currentUser => _currentUser;
   static bool get isLoggedIn => _isLoggedIn;
   static String? get authToken => _authToken;
+  static String? get sessionCookie => _sessionCookie;
 
   /// Initialize the auth service and load user data from storage
   static Future<void> initialize() async {
@@ -23,6 +26,7 @@ class AuthService {
       final prefs = await SharedPreferences.getInstance();
       _isLoggedIn = prefs.getBool(_isLoggedInKey) ?? false;
       _authToken = prefs.getString(_tokenKey);
+      _sessionCookie = prefs.getString(_sessionCookieKey);
       
       if (_isLoggedIn && _authToken != null) {
         final userJson = prefs.getString(_userKey);
@@ -44,6 +48,7 @@ class AuthService {
       _currentUser = null;
       _isLoggedIn = false;
       _authToken = null;
+      _sessionCookie = null;
     }
   }
 
@@ -86,14 +91,36 @@ class AuthService {
           _authToken = responseData['token'];
           _isLoggedIn = true;
           
+          // Extract session cookie from response headers
+          final setCookie = response.headers['set-cookie'];
+          if (setCookie != null) {
+            _sessionCookie = setCookie.split(';')[0]; // Get just the cookie value
+            print('🍪 Session cookie extracted: ${_sessionCookie?.substring(0, 50)}...');
+          }
+          
           await _saveUserData();
           
+          // Fetch user data from server to get phone number
+          await getUserData();
+          
+          // Check if user was created more than 10 minutes ago
+          final now = DateTime.now();
+          final createdAt = _currentUser!.createdAt ?? now;
+          final accountAge = now.difference(createdAt);
+          final isAccountOld = accountAge.inMinutes > 10;
+          
           // Check if profile is complete (has phone number)
-          final isNewUser = !user.isProfileComplete;
+          final isProfileComplete = _currentUser?.isProfileComplete ?? false;
+          
+          // Skip setup if account is older than 10 minutes OR profile is complete
+          final isNewUser = !isProfileComplete && !isAccountOld;
           
           print('✅ Sign In Success: User ${user.email} logged in');
           print('✅ Token stored: ${_authToken!.substring(0, 20)}...');
-          return AuthResult.success(user, isNewUser: isNewUser);
+          print('📅 Account age: ${accountAge.inMinutes} minutes');
+          print('📋 Profile complete: $isProfileComplete');
+          print('🆕 Show setup: $isNewUser');
+          return AuthResult.success(_currentUser!, isNewUser: isNewUser);
         }
       }
       
@@ -150,6 +177,13 @@ class AuthService {
           _authToken = responseData['token'];
           _isLoggedIn = true;
           
+          // Extract session cookie from response headers
+          final setCookie = response.headers['set-cookie'];
+          if (setCookie != null) {
+            _sessionCookie = setCookie.split(';')[0]; // Get just the cookie value
+            print('🍪 Session cookie extracted: ${_sessionCookie?.substring(0, 50)}...');
+          }
+          
           await _saveUserData();
           
           print('✅ Sign Up Success: User ${user.email} created');
@@ -170,7 +204,7 @@ class AuthService {
     }
   }
 
-  /// Complete signup by adding phone number (uses Better Auth's update-user endpoint)
+  /// Complete signup by adding phone number
   static Future<AuthResult> completeSignup({
     required String fullName,
     required String phoneNumber,
@@ -182,30 +216,33 @@ class AuthService {
         return AuthResult.failure('No authentication token');
       }
 
-      print('📤 Complete Signup Request:');
-      print('   URL: ${AppConfig.apiBaseUrl}/auth/update-user');
-      print('   Phone: $phoneDialCode$phoneNumber');
+      if (_currentUser == null) {
+        return AuthResult.failure('No user logged in');
+      }
 
-      // Better Auth's update-user endpoint requires cookie authentication
-      // Since we can't easily set cookies in Flutter, we'll store phone locally
-      // The user already has their name from signup, so we just save phone locally
+      final fullPhoneNumber = '$phoneDialCode$phoneNumber';
       
-      print('📝 Storing phone number locally (Better Auth limitation)');
+      print('📤 Complete Signup Request:');
+      print('   Phone: $fullPhoneNumber');
+
+      // Send phone number to server
+      final phoneAdded = await addPhoneNumber(fullPhoneNumber);
       
-      // Update current user with phone number locally
-      if (_currentUser != null) {
-        _currentUser = _currentUser!.copyWith(
-          phoneNumber: phoneNumber,
-          phoneCountryCode: phoneCountryCode,
-          phoneDialCode: phoneDialCode,
-        );
-        await _saveUserData();
-        
-        print('✅ Profile completed with phone number (stored locally)');
-        return AuthResult.success(_currentUser!);
+      // Update local user data regardless of server response
+      _currentUser = _currentUser!.copyWith(
+        phoneNumber: phoneNumber,
+        phoneCountryCode: phoneCountryCode,
+        phoneDialCode: phoneDialCode,
+      );
+      await _saveUserData();
+      
+      if (phoneAdded) {
+        print('✅ Profile completed - phone number synced to server');
+      } else {
+        print('⚠️ Profile completed locally - server sync may have failed');
       }
       
-      return AuthResult.failure('Failed to update profile: User not found');
+      return AuthResult.success(_currentUser!);
     } catch (e) {
       print('❌ Complete Signup Exception: $e');
       return AuthResult.failure('Complete signup failed: ${e.toString()}');
@@ -302,22 +339,123 @@ class AuthService {
     }
   }
 
+  /// Fetch user data from server
+  static Future<void> getUserData() async {
+    if (_authToken == null) return;
+    
+    try {
+      print('📤 Fetching user data from server...');
+      print('   Token: ${_authToken!.substring(0, 20)}...');
+      if (_sessionCookie != null) {
+        print('   Cookie: ${_sessionCookie!.substring(0, 50)}...');
+      }
+      
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_authToken',
+      };
+      
+      // Add session cookie if available
+      if (_sessionCookie != null) {
+        headers['Cookie'] = _sessionCookie!;
+      }
+      
+      final response = await http.post(
+        Uri.parse('${AppConfig.apiBaseUrl}/user/organization/getUserData'),
+        headers: headers,
+        body: json.encode({}),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Get User Data Response: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('📥 User Data: $data');
+        
+        if (data != null && _currentUser != null) {
+          _currentUser = _currentUser!.copyWith(
+            fullName: data['name'] ?? _currentUser!.fullName,
+            phoneNumber: data['phoneNumber'],
+          );
+          await _saveUserData();
+          print('✅ User data updated from server');
+          if (data['phoneNumber'] != null) {
+            print('📞 Phone number found: ${data['phoneNumber']}');
+          }
+        }
+      } else {
+        print('⚠️ Failed to fetch user data: ${response.body}');
+      }
+    } catch (e) {
+      print('⚠️ Error fetching user data: $e');
+    }
+  }
+
+  /// Add phone number to server
+  static Future<bool> addPhoneNumber(String phoneNumber) async {
+    if (_authToken == null) {
+      print('⚠️ No auth token available');
+      return false;
+    }
+    
+    try {
+      print('📤 Adding phone number to server...');
+      print('   Phone: $phoneNumber');
+      
+      final headers = <String, String>{
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_authToken',
+      };
+      
+      // Add session cookie if available
+      if (_sessionCookie != null) {
+        headers['Cookie'] = _sessionCookie!;
+      }
+      
+      final response = await http.post(
+        Uri.parse('${AppConfig.apiBaseUrl}/user/organization/addPhoneNumber'),
+        headers: headers,
+        body: json.encode({
+          'phoneNumber': phoneNumber,
+        }),
+      ).timeout(AppConfig.networkTimeout);
+
+      print('📥 Add Phone Response: ${response.statusCode}');
+      print('📥 Response Body: ${response.body}');
+      
+      if (response.statusCode == 200) {
+        print('✅ Phone number added successfully on server');
+        return true;
+      } else {
+        print('⚠️ Failed to add phone number: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      print('⚠️ Error adding phone number: $e');
+      return false;
+    }
+  }
+
   /// Logout the current user
   static Future<void> logout() async {
     try {
       _currentUser = null;
       _isLoggedIn = false;
       _authToken = null;
+      _sessionCookie = null;
       
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_userKey);
       await prefs.remove(_tokenKey);
+      await prefs.remove(_sessionCookieKey);
       await prefs.setBool(_isLoggedInKey, false);
     } catch (e) {
       // Even if there's an error, ensure the in-memory state is clean
       _currentUser = null;
       _isLoggedIn = false;
       _authToken = null;
+      _sessionCookie = null;
     }
   }
 
@@ -331,6 +469,10 @@ class AuthService {
       
       if (_authToken != null) {
         await prefs.setString(_tokenKey, _authToken!);
+      }
+      
+      if (_sessionCookie != null) {
+        await prefs.setString(_sessionCookieKey, _sessionCookie!);
       }
     }
   }

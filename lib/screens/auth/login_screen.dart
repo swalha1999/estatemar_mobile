@@ -54,7 +54,7 @@ class _LoginScreenState extends State<LoginScreen> {
       
       if (result.isSuccess && result.user != null) {
         // Check if user needs to add phone number
-        if (result.isNewUser || !result.user!.isProfileComplete) {
+        if (result.isNewUser) {
           // Navigate to profile setup to collect phone number
           if (mounted) {
             final completed = await Navigator.push<bool>(

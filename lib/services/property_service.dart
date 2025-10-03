@@ -64,7 +64,6 @@ class PropertyService {
         });
         break;
       case SortOrder.none:
-      default:
         // No sorting applied
         break;
     }

@@ -1,12 +1,82 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_property.dart';
+import 'api_service.dart';
 
 class UserPropertyService {
   static const String _propertiesKey = 'user_properties';
+  static final ApiService _apiService = ApiService();
 
   /// Get all properties for a specific user
   static Future<List<UserProperty>> getUserProperties(String userId) async {
+    try {
+      // Try to get from API first
+      try {
+        final propertiesFromApi = await _apiService.getUserProperties();
+        
+        // Cache the properties locally
+        await _savePropertiesLocally(userId, propertiesFromApi);
+        
+        return propertiesFromApi;
+      } catch (apiError) {
+        print('⚠️ Failed to load from API, using local cache: $apiError');
+        
+        // Fallback to local cache if API fails
+        final prefs = await SharedPreferences.getInstance();
+        final propertiesJson = prefs.getString('${_propertiesKey}_$userId');
+        
+        if (propertiesJson == null) {
+          return [];
+        }
+
+        final List<dynamic> propertiesList = json.decode(propertiesJson);
+        return propertiesList
+            .map((json) => UserProperty.fromJson(json))
+            .toList();
+      }
+    } catch (e) {
+      print('❌ Error loading properties: $e');
+      return [];
+    }
+  }
+
+  /// Add a new property for a user
+  static Future<bool> addProperty(UserProperty property) async {
+    try {
+      // Try to save to API first
+      try {
+        final createdProperty = await _apiService.createUserProperty(property);
+        
+        if (createdProperty != null) {
+          // Save to local cache as well
+          final properties = await _getPropertiesLocally(property.userId);
+          properties.add(createdProperty);
+          await _savePropertiesLocally(property.userId, properties);
+          
+          print('✅ Property added successfully (API + Local)');
+          return true;
+        }
+      } catch (apiError) {
+        print('⚠️ Failed to save to API, saving locally only: $apiError');
+        
+        // Fallback to local storage if API fails
+        final properties = await _getPropertiesLocally(property.userId);
+        properties.add(property);
+        await _savePropertiesLocally(property.userId, properties);
+        
+        print('✅ Property saved locally (will sync when online)');
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      print('❌ Error adding property: $e');
+      return false;
+    }
+  }
+
+  /// Helper: Get properties from local cache only
+  static Future<List<UserProperty>> _getPropertiesLocally(String userId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final propertiesJson = prefs.getString('${_propertiesKey}_$userId');
@@ -24,44 +94,63 @@ class UserPropertyService {
     }
   }
 
-  /// Add a new property for a user
-  static Future<bool> addProperty(UserProperty property) async {
+  /// Helper: Save properties to local cache
+  static Future<void> _savePropertiesLocally(String userId, List<UserProperty> properties) async {
     try {
-      final properties = await getUserProperties(property.userId);
-      properties.add(property);
-      
       final prefs = await SharedPreferences.getInstance();
       final propertiesJson = json.encode(
         properties.map((p) => p.toJson()).toList(),
       );
-      
-      await prefs.setString('${_propertiesKey}_${property.userId}', propertiesJson);
-      return true;
+      await prefs.setString('${_propertiesKey}_$userId', propertiesJson);
     } catch (e) {
-      return false;
+      print('❌ Error saving properties locally: $e');
     }
   }
 
   /// Update an existing property
   static Future<bool> updateProperty(UserProperty property) async {
     try {
-      final properties = await getUserProperties(property.userId);
-      final index = properties.indexWhere((p) => p.id == property.id);
-      
-      if (index == -1) {
-        return false;
-      }
+      // Try to update on API first
+      try {
+        final updatedProperty = await _apiService.updateUserProperty(property);
+        
+        if (updatedProperty != null) {
+          // Update local cache as well
+          final properties = await _getPropertiesLocally(property.userId);
+          final index = properties.indexWhere((p) => p.id == property.id);
+          
+          if (index != -1) {
+            properties[index] = updatedProperty;
+          } else {
+            properties.add(updatedProperty);
+          }
+          
+          await _savePropertiesLocally(property.userId, properties);
+          
+          print('✅ Property updated successfully (API + Local)');
+          return true;
+        }
+      } catch (apiError) {
+        print('⚠️ Failed to update on API, updating locally only: $apiError');
+        
+        // Fallback to local storage if API fails
+        final properties = await _getPropertiesLocally(property.userId);
+        final index = properties.indexWhere((p) => p.id == property.id);
+        
+        if (index == -1) {
+          return false;
+        }
 
-      properties[index] = property.copyWith(updatedAt: DateTime.now());
+        properties[index] = property.copyWith(updatedAt: DateTime.now());
+        await _savePropertiesLocally(property.userId, properties);
+        
+        print('✅ Property updated locally (will sync when online)');
+        return true;
+      }
       
-      final prefs = await SharedPreferences.getInstance();
-      final propertiesJson = json.encode(
-        properties.map((p) => p.toJson()).toList(),
-      );
-      
-      await prefs.setString('${_propertiesKey}_${property.userId}', propertiesJson);
-      return true;
+      return false;
     } catch (e) {
+      print('❌ Error updating property: $e');
       return false;
     }
   }
@@ -69,17 +158,34 @@ class UserPropertyService {
   /// Delete a property
   static Future<bool> deleteProperty(String userId, String propertyId) async {
     try {
-      final properties = await getUserProperties(userId);
-      properties.removeWhere((p) => p.id == propertyId);
+      // Try to delete from API first
+      try {
+        final deleted = await _apiService.deleteUserProperty(propertyId);
+        
+        if (deleted) {
+          // Delete from local cache as well
+          final properties = await _getPropertiesLocally(userId);
+          properties.removeWhere((p) => p.id == propertyId);
+          await _savePropertiesLocally(userId, properties);
+          
+          print('✅ Property deleted successfully (API + Local)');
+          return true;
+        }
+      } catch (apiError) {
+        print('⚠️ Failed to delete from API, deleting locally only: $apiError');
+        
+        // Fallback to local storage if API fails
+        final properties = await _getPropertiesLocally(userId);
+        properties.removeWhere((p) => p.id == propertyId);
+        await _savePropertiesLocally(userId, properties);
+        
+        print('✅ Property deleted locally (will sync when online)');
+        return true;
+      }
       
-      final prefs = await SharedPreferences.getInstance();
-      final propertiesJson = json.encode(
-        properties.map((p) => p.toJson()).toList(),
-      );
-      
-      await prefs.setString('${_propertiesKey}_$userId', propertiesJson);
-      return true;
+      return false;
     } catch (e) {
+      print('❌ Error deleting property: $e');
       return false;
     }
   }

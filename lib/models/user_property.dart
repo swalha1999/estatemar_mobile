@@ -183,6 +183,7 @@ class UserProperty {
     DateTime? updatedAt,
     double? monthlyRent,
     double? annualAppreciationRate,
+    List<String>? imageUrls,
     bool? isForSale,
     bool? isForRent,
   }) {
@@ -203,6 +204,7 @@ class UserProperty {
       updatedAt: updatedAt ?? this.updatedAt,
       monthlyRent: monthlyRent ?? this.monthlyRent,
       annualAppreciationRate: annualAppreciationRate ?? this.annualAppreciationRate,
+      imageUrls: imageUrls ?? this.imageUrls,
       isForSale: isForSale ?? this.isForSale,
       isForRent: isForRent ?? this.isForRent,
     );
@@ -226,6 +228,7 @@ class UserProperty {
       'updatedAt': updatedAt?.toIso8601String(),
       'monthlyRent': monthlyRent,
       'annualAppreciationRate': annualAppreciationRate,
+      'imageUrls': imageUrls,
       'isForSale': isForSale,
       'isForRent': isForRent,
     };
@@ -257,6 +260,9 @@ class UserProperty {
           : null,
       monthlyRent: json['monthlyRent'] != null ? (json['monthlyRent'] as num).toDouble() : null,
       annualAppreciationRate: json['annualAppreciationRate'] != null ? (json['annualAppreciationRate'] as num).toDouble() : null,
+      imageUrls: json['imageUrls'] != null 
+          ? List<String>.from(json['imageUrls'])
+          : const [],
       isForSale: json['isForSale'] as bool? ?? false,
       isForRent: json['isForRent'] as bool? ?? false,
     );

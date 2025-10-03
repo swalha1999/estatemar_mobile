@@ -5,7 +5,10 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize auth service and load saved session
   await AuthService.initialize();
+  
   runApp(const MyApp());
 }
 

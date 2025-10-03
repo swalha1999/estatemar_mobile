@@ -24,11 +24,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     
     // Wait a bit to show loading state
     await Future.delayed(const Duration(milliseconds: 500));
     
+    if (!mounted) return;
     setState(() {
       _currentUser = AuthService.currentUser;
       _isLoading = false;
