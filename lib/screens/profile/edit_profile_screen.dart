@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:country_picker/country_picker.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 
@@ -12,6 +13,11 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  String? _phoneNumber;
+  String? _phoneCountryCode;
+  String? _phoneDialCode;
+  Country? _selectedCountry;
   bool _isLoading = false;
 
   @override
@@ -22,14 +28,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   void _loadUserData() {
     final user = AuthService.currentUser;
-    if (user != null && user.fullName != null) {
-      _fullNameController.text = user.fullName!;
+    if (user != null) {
+      if (user.fullName != null) {
+        _fullNameController.text = user.fullName!;
+      }
+      if (user.phoneNumber != null) {
+        _phoneController.text = user.phoneNumber!;
+        _phoneNumber = user.phoneNumber;
+      }
+      if (user.phoneCountryCode != null) {
+        _phoneCountryCode = user.phoneCountryCode;
+        _selectedCountry = Country.tryParse(user.phoneCountryCode!);
+      } else {
+        _phoneCountryCode = 'IL';
+        _selectedCountry = Country.tryParse('IL');
+      }
+      if (user.phoneDialCode != null) {
+        _phoneDialCode = user.phoneDialCode;
+      } else {
+        _phoneDialCode = '+972';
+      }
     }
   }
 
   @override
   void dispose() {
     _fullNameController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -41,6 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     try {
       final result = await AuthService.updateProfile(
         fullName: _fullNameController.text.trim(),
+        phoneNumber: _phoneNumber?.trim(),
+        phoneCountryCode: _phoneCountryCode,
+        phoneDialCode: _phoneDialCode,
       );
 
       if (result.isSuccess) {
@@ -231,8 +259,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           // Full Name Input
                           TextFormField(
                             controller: _fullNameController,
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _handleSaveProfile(),
+                            textInputAction: TextInputAction.next,
                             style: AppTheme.formInput,
                             decoration: InputDecoration(
                               labelText: 'Full Name *',
@@ -260,6 +287,141 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               }
                               if (value.trim().length < 3) {
                                 return 'Name must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Country Selector
+                          GestureDetector(
+                            onTap: () {
+                              showCountryPicker(
+                                context: context,
+                                showPhoneCode: true,
+                                favorite: const ['IL', 'US', 'GB'],
+                                countryListTheme: CountryListThemeData(
+                                  backgroundColor: AppTheme.background,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    topRight: Radius.circular(16),
+                                  ),
+                                  bottomSheetHeight: MediaQuery.of(context).size.height * 0.75,
+                                  inputDecoration: InputDecoration(
+                                    hintText: 'Search country',
+                                    prefixIcon: const Icon(Icons.search, color: AppTheme.textSecondary),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(color: AppTheme.borderLight),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                                    ),
+                                  ),
+                                  textStyle: AppTheme.formInput,
+                                ),
+                                onSelect: (Country c) {
+                                  setState(() {
+                                    _selectedCountry = c;
+                                    _phoneCountryCode = c.countryCode;
+                                    _phoneDialCode = '+${c.phoneCode}';
+                                  });
+                                },
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.backgroundSecondary,
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: AppTheme.borderLight),
+                              ),
+                              child: Row(
+                                children: [
+                                  if (_selectedCountry != null) ...[
+                                    Text(
+                                      _selectedCountry!.flagEmoji,
+                                      style: const TextStyle(fontSize: 20),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ] else ...[
+                                    const Text('🇮🇱', style: TextStyle(fontSize: 20)),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          _selectedCountry?.name ?? 'Israel',
+                                          style: AppTheme.formInput,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          _phoneDialCode ?? '+972',
+                                          style: AppTheme.formHint,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.textSecondary),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          // Phone Number Input
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.done,
+                            onChanged: (v) => _phoneNumber = v.trim(),
+                            onFieldSubmitted: (_) => _handleSaveProfile(),
+                            style: AppTheme.formInput,
+                            decoration: InputDecoration(
+                              labelText: 'Phone Number',
+                              hintText: '5X-XXXXXXX',
+                              labelStyle: AppTheme.formLabel,
+                              hintStyle: AppTheme.formHint,
+                              prefixIcon: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    _phoneDialCode ?? '+972',
+                                    style: AppTheme.formInput,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(width: 1, height: 20, color: AppTheme.borderLight),
+                                  const SizedBox(width: 8),
+                                ],
+                              ),
+                              prefixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppTheme.borderLight),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: const BorderSide(color: AppTheme.primary, width: 2),
+                              ),
+                              filled: true,
+                              fillColor: AppTheme.backgroundSecondary,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            ),
+                            validator: (value) {
+                              if (value != null && value.trim().isNotEmpty && value.trim().length < 6) {
+                                return 'Please enter a valid phone number';
                               }
                               return null;
                             },
